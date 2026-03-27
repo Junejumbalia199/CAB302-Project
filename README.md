@@ -24,7 +24,7 @@ Provide a help option with explanations of how to use the program.
 
 Provide narration for text outputs.
 
-Allow the user to ask questions of the program. Implement a chatbot that can provide alternative description of how the program works.
+Allow the user to ask questions of the program. Potentially implement a chatbot that can provide alternative description of how the program works.
 
 Allow users to create and sign in with accounts.
 
