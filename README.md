@@ -31,6 +31,8 @@ Allow users to create and login with accounts.
 
 Allow the user to control whether or not video is currently being captured.
 
+Count the user's reps so they can focus on form
+
 Provide accessibility options:
 
 Narration for text outputs.
