@@ -6,10 +6,14 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.*;
 import javafx.stage.Stage;
+import userdatabase.IUserDAO;
+import userdatabase.SqliteUserDAO;
+import userdatabase.User;
 
 public class LoginApp extends Application {
 
     private Stage primaryStage;
+    private IUserDAO userDAO = new SqliteUserDAO();
 
     @Override
     public void start(Stage stage) {
@@ -57,8 +61,10 @@ public class LoginApp extends Application {
     private void handleLogin(String username, String password) {
         if (username.isEmpty() || password.isEmpty()) {
             showAlert("Please fill in all fields.");
+        } else if (userDAO.validateLogin(username, password)) {
+            showAlert("Login successful!");
         } else {
-            showAlert("Login successful!\n(Database not yet connected)");
+            showAlert("Invalid username or password.");
         }
     }
 
@@ -108,8 +114,12 @@ public class LoginApp extends Application {
             showAlert("Please fill in all fields.");
         } else if (!password.equals(confirm)) {
             showAlert("Passwords do not match.");
+        } else if (userDAO.getUserByUsername(username) != null) {
+            showAlert("Username already exists.");
         } else {
-            showAlert("Account created!\n(Database not yet connected)");
+            User newUser = new User(username, password, email);
+            userDAO.addUser(newUser);
+            showAlert("Account created! You can now log in.");
             showLoginScreen();
         }
     }
