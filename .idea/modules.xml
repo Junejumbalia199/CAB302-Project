@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/MediaPipe TEst.iml" filepath="$PROJECT_DIR$/.idea/MediaPipe TEst.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CA302_Project1.iml" filepath="$PROJECT_DIR$/CA302_Project1.iml" />
     </modules>
   </component>
 </project>
