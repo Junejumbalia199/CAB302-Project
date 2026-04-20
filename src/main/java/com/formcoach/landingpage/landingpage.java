@@ -77,8 +77,8 @@ public class landingpage extends StackPane {
 
         mainLayout.getChildren().addAll(navBar, heroSection);
 
-        // --- Floating Action Button (Chat) ---
-        Button fab = new Button("💬"); // You can replace with an Icon view
+        // chatbot button for me (nathan) to link to chatbot.java
+        Button fab = new Button("💬");
         fab.getStyleClass().add("chat-fab");
         fab.setTextFill(Color.WHITE);
         StackPane.setAlignment(fab, Pos.BOTTOM_RIGHT);

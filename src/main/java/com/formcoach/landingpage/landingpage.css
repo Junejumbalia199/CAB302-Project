@@ -81,7 +81,7 @@
     -fx-cursor: hand;
 }
 
-/* Floating Chat Button */
+/* chatbox popup button */
 .chat-fab {
     -fx-background-color: #0ea5e9;
     -fx-background-radius: 50;
