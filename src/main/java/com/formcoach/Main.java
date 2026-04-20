@@ -1,15 +1,30 @@
 package com.formcoach;
 
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+import com.formcoach.landingpage.landingpage;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+public class Main extends Application {
+
+    @Override
+    public void start(Stage primaryStage) {
+        // 1. Create an instance of your landing page class
+        landingpage root = new landingpage();
+
+        // 2. Create the Scene (Width x Height)
+        Scene scene = new Scene(root, 1200, 800);
+
+        // 3. Configure the Window (Stage)
+        primaryStage.setTitle("FormCoach - AI Powered Form Coaching");
+        primaryStage.setScene(scene);
+
+        // 4. Show the window
+        primaryStage.show();
+    }
+
+    public static void main(String[] args) {
+        // This launches the JavaFX application
+        launch(args);
     }
 }
