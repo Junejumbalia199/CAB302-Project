@@ -30,5 +30,9 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### Kaggle secrets & cached datasets ###
+**/kaggle.json
+/data/
+
 ### API Key (.env file) ###
 .env

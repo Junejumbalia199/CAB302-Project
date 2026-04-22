@@ -10,7 +10,8 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="exercise-tracker" target="21" />
+      <module name="CA302_Project1" target="21" />
+      <module name="MediaPipe TEst" target="21" />
     </bytecodeTargetLevel>
   </component>
 </project>
