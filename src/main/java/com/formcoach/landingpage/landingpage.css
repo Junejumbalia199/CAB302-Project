@@ -1,0 +1,91 @@
+.root {
+    -fx-background-color: #f8fafc;
+    -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+/* Header Styles */
+.nav-bar {
+    -fx-padding: 20 60;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.logo-text {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-fill: #0f172a;
+}
+
+.nav-link {
+    -fx-text-fill: #64748b;
+    -fx-font-weight: bold;
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+.nav-link-active {
+    -fx-background-color: #0ea5e9;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+}
+
+/* Hero Section */
+.hero-container {
+    -fx-padding: 100 60;
+}
+
+.badge {
+    -fx-background-color: #e0f2fe;
+    -fx-text-fill: #0ea5e9;
+    -fx-padding: 5 15;
+    -fx-background-radius: 20;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.headline {
+    -fx-font-size: 64px;
+    -fx-font-weight: 900;
+    -fx-fill: #1e293b;
+}
+
+.headline-accent {
+    -fx-fill: #0ea5e9;
+}
+
+.subtext {
+    -fx-font-size: 18px;
+    -fx-fill: #64748b;
+    -fx-line-spacing: 5px;
+}
+
+/* Buttons */
+.btn-primary {
+    -fx-background-color: #0ea5e9;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 25;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.btn-secondary {
+    -fx-background-color: white;
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 25;
+    -fx-background-radius: 10;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 10;
+    -fx-cursor: hand;
+}
+
+/* chatbox popup button */
+.chat-fab {
+    -fx-background-color: #0ea5e9;
+    -fx-background-radius: 50;
+    -fx-min-width: 55;
+    -fx-min-height: 55;
+    -fx-cursor: hand;
+}

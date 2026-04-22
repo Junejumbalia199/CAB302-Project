@@ -1,0 +1,21 @@
+<component name="libraryTable">
+  <library name="corretto-21.0">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.jdks/corretto-21.0.10" />
+      <root url="jar://$USER_HOME$/Downloads/amazon-corretto-21.0.10.7.1-windows-x64-jdk.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/Downloads/openjfx-26_windows-x64_bin-sdk/javafx-sdk-26/src.zip!/javafx.base" />
+      <root url="jar://$USER_HOME$/Downloads/openjfx-26_windows-x64_bin-sdk/javafx-sdk-26/src.zip!/javafx.controls" />
+      <root url="jar://$USER_HOME$/Downloads/openjfx-26_windows-x64_bin-sdk/javafx-sdk-26/src.zip!/javafx.fxml" />
+      <root url="jar://$USER_HOME$/Downloads/openjfx-26_windows-x64_bin-sdk/javafx-sdk-26/src.zip!/javafx.graphics" />
+      <root url="jar://$USER_HOME$/Downloads/openjfx-26_windows-x64_bin-sdk/javafx-sdk-26/src.zip!/javafx.media" />
+      <root url="jar://$USER_HOME$/Downloads/openjfx-26_windows-x64_bin-sdk/javafx-sdk-26/src.zip!/javafx.swing" />
+      <root url="jar://$USER_HOME$/Downloads/openjfx-26_windows-x64_bin-sdk/javafx-sdk-26/src.zip!/javafx.web" />
+      <root url="jar://$USER_HOME$/Downloads/openjfx-26_windows-x64_bin-sdk/javafx-sdk-26/src.zip!/jdk.jsobject" />
+      <root url="jar://$USER_HOME$/Downloads/openjfx-26_windows-x64_bin-sdk/javafx-sdk-26/src.zip!/jfx.incubator.input" />
+      <root url="jar://$USER_HOME$/Downloads/openjfx-26_windows-x64_bin-sdk/javafx-sdk-26/src.zip!/jfx.incubator.richtext" />
+    </SOURCES>
+  </library>
+</component>
