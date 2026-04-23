@@ -32,3 +32,5 @@ bin/
 
 ### API Key (.env file) ###
 .env
+
+target/
