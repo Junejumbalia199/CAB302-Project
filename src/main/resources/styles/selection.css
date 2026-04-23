@@ -247,3 +247,14 @@
     -fx-font-weight: 900;
     -fx-text-fill: #1e293b;
 }
+
+.selection-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.selection-scroll > .viewport {
+    -fx-background-color: transparent;
+}

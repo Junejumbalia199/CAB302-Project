@@ -45,19 +45,19 @@ public class ExerciseSelectionPage {
             ),
             new ExerciseItem(
                     "Lunges",
-                    "Improve balance and leg strength by stepping forward and lowering under control.",
+                    "N/A",
                     "/assets/comingsoon.png",
                     "Lower Body"
             ),
             new ExerciseItem(
                     "Plank",
-                    "Build core stability by holding a strong straight-line position from shoulders to heels.",
+                    "N/A",
                     "/assets/comingsoon.png",
                     "Core"
             ),
             new ExerciseItem(
                     "Glute Bridges",
-                    "Strengthen your glutes and hamstrings by lifting your hips while staying controlled.",
+                    "N/A",
                     "/assets/comingsoon.png",
                     "Lower Body"
             )
@@ -88,23 +88,31 @@ public class ExerciseSelectionPage {
 
     private Scene createScene() {
         StackPane root = new StackPane();
-        root.setPadding(new Insets(40, 0, 0, 0));
 
         BorderPane layout = new BorderPane();
         layout.getStyleClass().add("root-pane");
 
         VBox topWrapper = new VBox(createNavigationBar());
-        topWrapper.setPadding(new Insets(8, 24, 0, 24));
+        topWrapper.setPadding(new Insets(18, 24, 0, 24));
         layout.setTop(topWrapper);
 
-        VBox centerContent = new VBox(24);
-        centerContent.setPadding(new Insets(28, 24, 110, 24));
-        centerContent.setAlignment(Pos.TOP_CENTER);
-        centerContent.getChildren().addAll(
+        VBox pageContent = new VBox(24);
+        pageContent.setAlignment(Pos.TOP_CENTER);
+        pageContent.setPadding(new Insets(26, 24, 120, 24));
+        pageContent.getChildren().addAll(
                 createHeader(),
+                createSearchBar(),
                 createExerciseSection()
         );
-        layout.setCenter(centerContent);
+
+        ScrollPane scrollPane = new ScrollPane(pageContent);
+        scrollPane.getStyleClass().add("selection-scroll");
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setPannable(true);
+
+        layout.setCenter(scrollPane);
 
         Button helpButton = createHelpButton();
         StackPane.setAlignment(helpButton, Pos.BOTTOM_LEFT);
@@ -125,6 +133,7 @@ public class ExerciseSelectionPage {
     private HBox createNavigationBar() {
         HBox navBar = new HBox(40);
         navBar.getStyleClass().add("nav-bar");
+        navBar.setAlignment(Pos.CENTER_LEFT);
 
         Text logo = new Text("FormCoach");
         logo.getStyleClass().add("logo-text");
@@ -161,7 +170,7 @@ public class ExerciseSelectionPage {
     }
 
     private VBox createHeader() {
-        VBox wrapper = new VBox(18);
+        VBox wrapper = new VBox(10);
         wrapper.setMaxWidth(1460);
         wrapper.setAlignment(Pos.TOP_LEFT);
         wrapper.setPadding(new Insets(0, 44, 0, 44));
@@ -172,9 +181,21 @@ public class ExerciseSelectionPage {
         Label subtitle = new Label("Browse exercises and get AI form coaching");
         subtitle.getStyleClass().add("page-subtitle");
 
+        wrapper.getChildren().addAll(title, subtitle);
+        return wrapper;
+    }
+
+    private HBox createSearchBar() {
+        HBox wrapper = new HBox();
+        wrapper.setMaxWidth(1460);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setPadding(new Insets(0, 44, 0, 44));
+
         HBox searchShell = new HBox(10);
         searchShell.getStyleClass().add("search-shell");
         searchShell.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(searchShell, Priority.ALWAYS);
+        searchShell.setMaxWidth(Double.MAX_VALUE);
 
         Label searchIcon = new Label("⌕");
         searchIcon.getStyleClass().add("search-icon");
@@ -190,7 +211,8 @@ public class ExerciseSelectionPage {
         });
 
         searchShell.getChildren().addAll(searchIcon, searchField);
-        wrapper.getChildren().addAll(title, subtitle, searchShell);
+        wrapper.getChildren().add(searchShell);
+
         return wrapper;
     }
 
@@ -417,17 +439,7 @@ public class ExerciseSelectionPage {
         chatIcon.setStyle("-fx-fill: white;");
         iconCircle.getChildren().add(chatIcon);
 
-        VBox textBox = new VBox(2);
-        textBox.setAlignment(Pos.CENTER_LEFT);
-
-        Label title = new Label("Ask FormCoach AI");
-        title.getStyleClass().add("chat-title");
-
-        Label subtitle = new Label("Chat assistant");
-        subtitle.getStyleClass().add("chat-subtitle");
-
-        textBox.getChildren().addAll(title, subtitle);
-        widget.getChildren().addAll(iconCircle, textBox);
+        widget.getChildren().addAll(iconCircle);
 
         widget.setOnMouseClicked(e -> System.out.println("AI chatbot clicked"));
 
@@ -486,8 +498,8 @@ public class ExerciseSelectionPage {
         title.getStyleClass().add("dialog-title");
 
         Label subtitle = new Label(
-                "Placeholder page.\n\n" +
-                        "Tutorial page shall go here :)"
+                "Placeholder page\n\n" +
+                        "Tutorial shall go here :)"
         );
         subtitle.getStyleClass().add("exercise-description");
         subtitle.setWrapText(true);
