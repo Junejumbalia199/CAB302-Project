@@ -12,7 +12,7 @@ import javafx.scene.text.TextFlow;
 public class landingpage extends StackPane {
 
     public landingpage() {
-        this.getStylesheets().add(getClass().getResource("landingpage.css").toExternalForm());
+        this.getStylesheets().add(getClass().getResource("/styles/landingpage.css").toExternalForm());
 
         // Main Layout Container
         VBox mainLayout = new VBox();

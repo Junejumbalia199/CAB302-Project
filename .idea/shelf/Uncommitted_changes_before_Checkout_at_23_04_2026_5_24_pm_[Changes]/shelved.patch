@@ -1,0 +1,47 @@
+Index: CA302_Project1.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<module type=\"JAVA_MODULE\" version=\"4\">\r\n  <component name=\"NewModuleRootManager\" inherit-compiler-output=\"false\">\r\n    <output url=\"file://$MODULE_DIR$/out/production/CA302_Project1\" />\r\n    <output-test url=\"file://$MODULE_DIR$/out/test/CA302_Project1\" />\r\n    <exclude-output />\r\n    <content url=\"file://$MODULE_DIR$\">\r\n      <sourceFolder url=\"file://$MODULE_DIR$/src\" isTestSource=\"false\" />\r\n    </content>\r\n    <orderEntry type=\"jdk\" jdkName=\"corretto-21\" jdkType=\"JavaSDK\" />\r\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\r\n    <orderEntry type=\"library\" name=\"lib\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"gson\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"xerial.sqlite.jdbc\" level=\"project\" />\r\n  </component>\r\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/CA302_Project1.iml b/CA302_Project1.iml
+--- a/CA302_Project1.iml	(revision 13b2fa1b187681ec786693d1876a86c8c71f37a3)
++++ b/CA302_Project1.iml	(date 1776928997777)
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <module type="JAVA_MODULE" version="4">
+-  <component name="NewModuleRootManager" inherit-compiler-output="false">
++  <component name="NewModuleRootManager">
+     <output url="file://$MODULE_DIR$/out/production/CA302_Project1" />
+     <output-test url="file://$MODULE_DIR$/out/test/CA302_Project1" />
+     <exclude-output />
+@@ -10,6 +10,8 @@
+     <orderEntry type="jdk" jdkName="corretto-21" jdkType="JavaSDK" />
+     <orderEntry type="sourceFolder" forTests="false" />
+     <orderEntry type="library" name="lib" level="project" />
++    <orderEntry type="library" name="corretto-21.0" level="project" />
++    <orderEntry type="library" name="javafx.base" level="project" />
+     <orderEntry type="library" name="gson" level="project" />
+     <orderEntry type="library" name="xerial.sqlite.jdbc" level="project" />
+   </component>
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"Black\">\r\n    <option name=\"sdkName\" value=\"Python 3.13 (MediaPipe TEst)\" />\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_21\" project-jdk-name=\"25\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/..\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision 13b2fa1b187681ec786693d1876a86c8c71f37a3)
++++ b/.idea/misc.xml	(date 1776928801918)
+@@ -3,7 +3,7 @@
+   <component name="Black">
+     <option name="sdkName" value="Python 3.13 (MediaPipe TEst)" />
+   </component>
+-  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" project-jdk-name="25" project-jdk-type="JavaSDK">
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" project-jdk-name="corretto-21" project-jdk-type="JavaSDK">
+     <output url="file://$PROJECT_DIR$/.." />
+   </component>
+ </project>
+\ No newline at end of file
