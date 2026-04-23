@@ -7,6 +7,8 @@ import com.formcoach.posedetection.posedetection;
 import com.formcoach.runexercise.runexercise;
 import com.formcoach.selection.ExerciseSelectionPage;
 import com.formcoach.videomodal.ExerciseVideoView;
+import com.formcoach.auth.DatabaseAuthService;
+import com.formcoach.auth.AuthPage;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -54,7 +56,7 @@ public final class Navigator {
     public void showAuth() {
         // AuthService is still just an interface; passing null puts the
         // page into its demo mode (no real validation).
-        new AuthPage(stage, this::showLanding, this::showSelection, null).show();
+        new AuthPage(stage, this::showLanding, this::showSelection, new DatabaseAuthService()).show();
     }
 
     /** Paginated exercise picker. After show(), wire up all of its buttons. */
