@@ -26,6 +26,7 @@ public class DatabaseAuthService implements AuthService {
             return AuthResult.failure("Incorrect password.");
         }
 
+        AuthSession.setCurrentUser(user);
         return AuthResult.success("Login successful.");
     }
 
@@ -46,6 +47,7 @@ public class DatabaseAuthService implements AuthService {
         );
 
         userDAO.addUser(user);
+        AuthSession.setCurrentUser(user);
         return AuthResult.success("Account created successfully.");
     }
 }
