@@ -6,8 +6,21 @@ import com.formcoach.landingpage.landingpage;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import kaggle.ExerciseDataset;
+import kaggle.ExerciseRepository;
+
+import java.util.List;
 
 public class Main extends Application {
+
+    // One repo alive for the whole app lifetime. After the first load the
+    // parsed rows sit in memory and any screen that wants them can call
+    // Main.exercises().all() instead of re-parsing the CSV.
+    private static final ExerciseRepository exerciseRepo = new ExerciseRepository();
+
+    public static ExerciseRepository exercises() {
+        return exerciseRepo;
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -15,6 +28,22 @@ public class Main extends Application {
         // Every page is reachable from there now: landing -> selection,
         // landing -> auth -> selection, etc.
         new Navigator(primaryStage).showLanding();
+
+        // Kick off the Kaggle dataset load on a background daemon thread.
+        // First run has to download the CSV; subsequent runs hit the local
+        // cache and return in a few ms. If something fails (no kaggle.json,
+        // no internet, whatever) I log it and carry on — the selection
+        // page has a hardcoded fallback so the app stays usable.
+        Thread warmup = new Thread(() -> {
+            try {
+                List<ExerciseDataset> rows = exerciseRepo.ensureLoaded();
+                System.out.println("[Kaggle] loaded " + rows.size() + " exercise rows");
+            } catch (Exception ex) {
+                System.err.println("[Kaggle] warmup skipped: " + ex.getMessage());
+            }
+        }, "kaggle-warmup");
+        warmup.setDaemon(true);
+        warmup.start();
     }
 
     public static void main(String[] args) {
