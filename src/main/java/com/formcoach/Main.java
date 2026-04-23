@@ -52,6 +52,7 @@ public class Main extends Application {
     }
 }
 
+
 //login page run code, once the db is implemented remove and switch "null"
 /*public class Main extends Application {
 
@@ -71,7 +72,7 @@ public class Main extends Application {
         launch(args);
     }
 }
- */
+*/
 
 //exercise selection page code, needs to be linked with the tutorial page
 /*public class Main extends Application {
@@ -90,5 +91,5 @@ public class Main extends Application {
         launch(args);
     }
 }
+*/
 
- */
