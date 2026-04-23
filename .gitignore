@@ -34,3 +34,5 @@ bin/
 .env
 
 target/
+users.db
+.idea/shelf/
