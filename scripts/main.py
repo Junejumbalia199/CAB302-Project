@@ -31,7 +31,7 @@ RIGHT_LANDMARKS = {4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32}
 '''
 Legend:
 
-1.
+1. Inner left eye
 2.
 '''
 
@@ -63,12 +63,12 @@ def draw_landmarks(frame, result: PoseLandmarkerResult):
 
         # Draw landmark dots
         for idx, point in enumerate(points):
-            if idx in LEFT_LANDMARKS:
+            elif idx in [1]:
+                color = (255, 0, 0)    # Change idx to single out that point by giving it a unique color
+            elif idx in LEFT_LANDMARKS:
                 color = (0, 255, 0)    # Green for left
             elif idx in RIGHT_LANDMARKS:
                 color = (0, 0, 255)    # Red for right
-            elif idx == 1:
-                color = (255, 0, 0)    # Change idx to single out that point by giving it a unique color
             else:
                 color = (255, 255, 255)  # White for centre
 

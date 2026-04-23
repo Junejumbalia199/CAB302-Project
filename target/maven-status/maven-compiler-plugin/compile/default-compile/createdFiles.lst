@@ -1,0 +1,11 @@
+com\formcoach\auth\AuthService.class
+com\formcoach\landingpage\landingpage.class
+com\formcoach\auth\AuthResult.class
+com\formcoach\auth\UserRegistrationRequest.class
+com\formcoach\runexercise\runexercise.class
+com\formcoach\auth\AuthPage.class
+com\formcoach\posedetection\posedetection.class
+com\formcoach\textoutputgen.class
+module-info.class
+com\formcoach\chatbot\chatbot.class
+com\formcoach\selection\ExerciseSelectionPage$ExerciseItem.class
