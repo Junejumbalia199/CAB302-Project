@@ -1,0 +1,102 @@
+.root-pane {
+    -fx-background-color: #f8fafc;
+    -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.nav-bar {
+    -fx-padding: 20 60 10 60;
+    -fx-alignment: center-left;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.logo-text {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-fill: #0f172a;
+}
+
+.nav-link {
+    -fx-text-fill: #64748b;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-color: transparent;
+    -fx-background-radius: 16;
+    -fx-padding: 10 18;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.nav-link:hover {
+    -fx-text-fill: #0f172a;
+}
+
+.nav-link-active {
+    -fx-background-color: #0ea5e9;
+    -fx-text-fill: white;
+    -fx-background-radius: 16;
+}
+
+.page-title {
+    -fx-font-size: 48px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #1e293b;
+}
+
+.page-subtitle {
+    -fx-font-size: 18px;
+    -fx-text-fill: #64748b;
+}
+
+.profile-card {
+    -fx-background-color: white;
+    -fx-background-radius: 24;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 24;
+    -fx-padding: 28;
+    -fx-spacing: 16;
+}
+
+.profile-heading {
+    -fx-font-size: 28px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #1e293b;
+}
+
+.info-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #64748b;
+}
+
+.info-value {
+    -fx-font-size: 18px;
+    -fx-text-fill: #0f172a;
+}
+
+.btn-primary {
+    -fx-background-color: #0ea5e9;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 22;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #0284c7;
+}
+
+.btn-secondary {
+    -fx-background-color: white;
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 22;
+    -fx-background-radius: 12;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 12;
+    -fx-cursor: hand;
+}

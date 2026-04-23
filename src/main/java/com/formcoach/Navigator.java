@@ -1,6 +1,7 @@
 package com.formcoach;
 
 import com.formcoach.auth.AuthPage;
+import com.formcoach.profile.ProfilePage;
 import com.formcoach.chatbot.chatbot;
 import com.formcoach.landingpage.landingpage;
 import com.formcoach.posedetection.posedetection;
@@ -8,7 +9,6 @@ import com.formcoach.runexercise.runexercise;
 import com.formcoach.selection.ExerciseSelectionPage;
 import com.formcoach.videomodal.ExerciseVideoView;
 import com.formcoach.auth.DatabaseAuthService;
-import com.formcoach.auth.AuthPage;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -61,9 +61,23 @@ public final class Navigator {
 
     /** Paginated exercise picker. After show(), wire up all of its buttons. */
     public void showSelection() {
-        ExerciseSelectionPage page = new ExerciseSelectionPage(stage, this::showLanding);
+        ExerciseSelectionPage page = new ExerciseSelectionPage(
+                stage,
+                this::showLanding,
+                this::showProfile
+        );
         page.show();
         wireSelectionScene(stage.getScene());
+    }
+
+
+    public void showProfile() {
+        new ProfilePage(
+                stage,
+                this::showLanding,
+                this::showSelection,
+                this::showAuth
+        ).show();
     }
 
     /** AI coach chat popup. */
@@ -110,7 +124,7 @@ public final class Navigator {
                 case "Home"                 -> b.setOnAction(e -> showLanding());
                 case "Exercises"            -> b.setOnAction(e -> showSelection());
                 case "History"              -> b.setOnAction(e -> System.out.println("[nav] History not built yet"));
-                case "Profile"              -> b.setOnAction(e -> showAuth());
+                case "Profile"              -> b.setOnAction(e -> showProfile());
                 case "Browse Exercises  →"  -> b.setOnAction(e -> showSelection());
                 case "View Progress"        -> b.setOnAction(e -> System.out.println("[nav] Progress not built yet"));
                 case "💬"                   -> b.setOnAction(e -> showChatbot());
@@ -138,7 +152,7 @@ public final class Navigator {
         for (Button b : findAllButtons(root)) {
             String text = b.getText() == null ? "" : b.getText().trim();
             switch (text) {
-                case "Profile"  -> b.setOnAction(e -> showAuth());
+                case "Profile"  -> b.setOnAction(e -> showProfile());
                 case "History"  -> b.setOnAction(e -> System.out.println("[nav] History not built yet"));
                 // Home is already wired via onBack.
                 // Exercises is the current page; leave it.

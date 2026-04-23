@@ -13,4 +13,6 @@ module com.formcoach {
     exports com.formcoach;
     exports kaggle;
     exports com.formcoach.auth;
+    exports com.formcoach.profile;
+    opens com.formcoach.profile to javafx.fxml;
 }
