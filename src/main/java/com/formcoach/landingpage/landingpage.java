@@ -1,5 +1,6 @@
 package com.formcoach.landingpage;
 
+import com.formcoach.chatbot.chatbot;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -81,6 +82,7 @@ public class landingpage extends StackPane {
         Button fab = new Button("💬");
         fab.getStyleClass().add("chat-fab");
         fab.setTextFill(Color.WHITE);
+        fab.setOnAction(e -> chatbot.showChatbot(this.getScene().getWindow()));
         StackPane.setAlignment(fab, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(fab, new Insets(30));
 

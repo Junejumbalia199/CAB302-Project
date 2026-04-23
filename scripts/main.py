@@ -29,10 +29,41 @@ LEFT_LANDMARKS = {1, 2, 3, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31}
 RIGHT_LANDMARKS = {4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32}
 
 '''
-Legend:
+Legend (left and right is from user's perspective):
 
-1. Inner left eye
-2.
+0 - nose
+1 - left eye (inner)
+2 - left eye
+3 - left eye (outer)
+4 - right eye (inner)
+5 - right eye
+6 - right eye (outer)
+7 - left ear
+8 - right ear
+9 - mouth (left)
+10 - mouth (right)
+11 - left shoulder
+12 - right shoulder
+13 - left elbow
+14 - right elbow
+15 - left wrist
+16 - right wrist
+17 - left pinky
+18 - right pinky
+19 - left index
+20 - right index
+21 - left thumb
+22 - right thumb
+23 - left hip
+24 - right hip
+25 - left knee
+26 - right knee
+27 - left ankle
+28 - right ankle
+29 - left heel
+30 - right heel
+31 - left foot index
+32 - right foot index
 '''
 
 latest_result = None
@@ -63,8 +94,8 @@ def draw_landmarks(frame, result: PoseLandmarkerResult):
 
         # Draw landmark dots
         for idx, point in enumerate(points):
-            elif idx in [1]:
-                color = (255, 0, 0)    # Change idx to single out that point by giving it a unique color
+            elif idx in [-1]:
+                color = (255, 0, 0)    # Change idx (-1) to single out that point by giving it a unique color
             elif idx in LEFT_LANDMARKS:
                 color = (0, 255, 0)    # Green for left
             elif idx in RIGHT_LANDMARKS:

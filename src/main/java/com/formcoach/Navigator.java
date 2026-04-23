@@ -64,9 +64,9 @@ public final class Navigator {
         wireSelectionScene(stage.getScene());
     }
 
-    /** AI coach chat page. Back -> landing. */
+    /** AI coach chat popup. */
     public void showChatbot() {
-        new chatbot(stage, this::showLanding).show();
+        chatbot.showChatbot(stage);
     }
 
     /**

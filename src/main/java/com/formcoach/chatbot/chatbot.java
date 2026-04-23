@@ -5,105 +5,160 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /**
- * Chat with the AI coach. This is a placeholder — the "Send" button
- * just drops a canned coach-style reply into the transcript so the
- * flow is clickable end-to-end. When there's a real LLM wired up,
- * swap the body of {@link #reply(String)} out.
+ * AI Coach Chatbot - displays as a modern floating popup window at the bottom right.
+ * Messages are displayed as chat bubbles with different styling for user vs. coach.
  */
 public class chatbot {
 
-    private final Stage stage;
-    private final Runnable onBack;
+    private static Stage chatStage;
+    private static VBox messageContainer;
+    private static TextField input;
 
-    private final TextArea  transcript = new TextArea();
-    private final TextField input      = new TextField();
+    /**
+     * Show the chatbot popup positioned at the bottom right of the owner window.
+     */
+    public static void showChatbot(Window owner) {
+        if (chatStage == null) {
+            chatStage = new Stage();
+            chatStage.setTitle("AI Coach");
+            chatStage.setWidth(380);
+            chatStage.setHeight(550);
 
-    public chatbot(Stage stage, Runnable onBack) {
-        this.stage  = stage;
-        this.onBack = onBack;
+            // Main container
+            VBox root = new VBox(12);
+            root.setPadding(new Insets(16));
+            root.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e2e8f0; -fx-border-width: 1;");
+
+            // Header
+            Label title = new Label("💡 AI Coach");
+            title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+
+            HBox header = new HBox(title);
+            header.setPadding(new Insets(0, 0, 8, 0));
+            header.setStyle("-fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;");
+
+            // Scrollable message area
+            messageContainer = new VBox(8);
+            messageContainer.setPadding(new Insets(8));
+            messageContainer.setStyle("-fx-background-color: transparent;");
+
+            ScrollPane scrollPane = new ScrollPane(messageContainer);
+            scrollPane.setFitToWidth(true);
+            scrollPane.setStyle("-fx-control-inner-background: #f8fafc; -fx-background-color: #f8fafc;");
+            scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+            // Add initial coach message
+            addCoachMessage("Hey! 👋 Ask me anything about your form.");
+
+            VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+            // Input area
+            input = new TextField();
+            input.setPromptText("Ask about your form...");
+            input.setStyle("-fx-padding: 10; -fx-font-size: 12px; -fx-background-radius: 6; -fx-border-radius: 6;");
+            HBox.setHgrow(input, Priority.ALWAYS);
+
+            Button send = new Button("Send");
+            send.setStyle("-fx-background-color: #0ea5e9; -fx-text-fill: white; -fx-padding: 8 16; "
+                    + "-fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;");
+            send.setOnAction(e -> onSend());
+
+            HBox inputRow = new HBox(8, input, send);
+            inputRow.setPadding(new Insets(8, 0, 0, 0));
+            inputRow.setStyle("-fx-border-color: #e2e8f0; -fx-border-width: 1 0 0 0;");
+
+            root.getChildren().addAll(header, scrollPane, inputRow);
+
+            Scene scene = new Scene(root);
+            chatStage.setScene(scene);
+        }
+
+        // Position at bottom right of owner window
+        if (owner != null) {
+            double x = owner.getX() + owner.getWidth() - chatStage.getWidth() - 20;
+            double y = owner.getY() + owner.getHeight() - chatStage.getHeight() - 20;
+            chatStage.setX(x);
+            chatStage.setY(y);
+        }
+
+        chatStage.show();
+        chatStage.toFront();
     }
 
-    public void show() {
-        VBox root = new VBox(16);
-        root.setPadding(new Insets(32));
-        root.setStyle("-fx-background-color: linear-gradient(to bottom right, #f5f7fa, #e9eef5);");
-
-        // Header: title + back.
-        Label title = new Label("AI Coach");
-        title.setStyle("-fx-font-size: 26px; -fx-font-weight: 800;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Button back = new Button("← Back");
-        styleSecondary(back);
-        back.setOnAction(e -> { if (onBack != null) onBack.run(); });
-
-        HBox header = new HBox(16, title, spacer, back);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        // Transcript — read-only, fills available space.
-        transcript.setEditable(false);
-        transcript.setWrapText(true);
-        transcript.setText("Coach: Hey! Ask me anything about your form.\n");
-        VBox.setVgrow(transcript, Priority.ALWAYS);
-
-        // Input row: text field + Send.
-        input.setPromptText("Type a message…");
-        HBox.setHgrow(input, Priority.ALWAYS);
-
-        Button send = new Button("Send");
-        stylePrimary(send);
-        send.setDefaultButton(true);
-        send.setOnAction(e -> onSend());
-
-        HBox inputRow = new HBox(10, input, send);
-
-        root.getChildren().addAll(header, transcript, inputRow);
-
-        Scene scene = new Scene(root, 1280, 760);
-        stage.setScene(scene);
-        stage.setTitle("FormCoach - AI Coach");
-        stage.show();
-    }
-
-    private void onSend() {
+    private static void onSend() {
         String msg = input.getText();
         if (msg == null || msg.isBlank()) return;
-        transcript.appendText("\nYou:    " + msg + "\n");
-        transcript.appendText("Coach: " + reply(msg) + "\n");
+
+        addUserMessage(msg);
         input.clear();
+
+        // Simulate bot response
+        String reply = reply(msg);
+        addCoachMessage(reply);
+    }
+
+    private static void addUserMessage(String text) {
+        Label message = new Label(text);
+        message.setWrapText(true);
+        message.setStyle("-fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 10 12;");
+
+        VBox bubble = new VBox(message);
+        bubble.setStyle("-fx-background-color: #0ea5e9; -fx-background-radius: 12; -fx-padding: 0;");
+        bubble.setMaxWidth(280);
+        bubble.setPadding(new Insets(0));
+
+        HBox row = new HBox(bubble);
+        row.setAlignment(Pos.CENTER_RIGHT);
+        row.setPadding(new Insets(4, 0, 4, 0));
+
+        messageContainer.getChildren().add(row);
+        scrollToBottom();
+    }
+
+    private static void addCoachMessage(String text) {
+        Label message = new Label(text);
+        message.setWrapText(true);
+        message.setStyle("-fx-text-fill: #1e293b; -fx-font-size: 12px; -fx-padding: 10 12;");
+
+        VBox bubble = new VBox(message);
+        bubble.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 12; -fx-padding: 0;");
+        bubble.setMaxWidth(280);
+        bubble.setPadding(new Insets(0));
+
+        HBox row = new HBox(bubble);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(4, 0, 4, 0));
+
+        messageContainer.getChildren().add(row);
+        scrollToBottom();
+    }
+
+    private static void scrollToBottom() {
+        // Schedule to run after layout pass
+        messageContainer.layout();
     }
 
     /** Keyword-matching stand-in until there's a real model behind it. */
-    private String reply(String userMessage) {
+    private static String reply(String userMessage) {
         String lower = userMessage.toLowerCase();
         if (lower.contains("pushup") || lower.contains("push-up"))
-            return "Keep your core tight and your elbows at ~45° from your torso.";
+            return "Keep your core tight and your elbows at ~45° from your torso. 💪";
         if (lower.contains("squat"))
-            return "Knees track over your toes, chest up, sit back into your heels.";
+            return "Knees track over your toes, chest up, sit back into your heels. 🏋️";
         if (lower.contains("plank"))
-            return "Straight line from shoulders to heels, don't let your hips sag.";
-        return "Good question! I'll have a smarter answer once I'm wired to a model.";
-    }
-
-    private static void stylePrimary(Button b) {
-        b.setStyle("-fx-background-color: #4a90e2; -fx-text-fill: white;"
-                + "-fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;");
-    }
-
-    private static void styleSecondary(Button b) {
-        b.setStyle("-fx-background-color: white; -fx-text-fill: #1f2937;"
-                + "-fx-border-color: #e5e7eb; -fx-border-radius: 8;"
-                + "-fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;");
+            return "Straight line from shoulders to heels, don't let your hips sag. 📏";
+        if (lower.contains("form") || lower.contains("technique"))
+            return "Great question! Focus on keeping proper alignment throughout the movement. 🎯";
+        return "I'm here to help! Ask me about any exercise or form concerns. 🤖";
     }
 }
