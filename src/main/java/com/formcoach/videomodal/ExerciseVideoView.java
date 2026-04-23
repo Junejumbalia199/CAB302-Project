@@ -1,7 +1,5 @@
 package com.formcoach.videomodal;
 
-import com.formcoach.posedetection.posedetection;
-import com.formcoach.selection.ExerciseSelectionPage;
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -44,6 +42,8 @@ import java.io.File;
 public class ExerciseVideoView extends StackPane {
 
     private final String exerciseName;
+    private final Runnable onBack;
+    private final Runnable onStartLive;
 
     // Pulled these up as fields because the control bar and the cleanup code
     // both need to get at them. Passing them around as arguments everywhere
@@ -54,8 +54,18 @@ public class ExerciseVideoView extends StackPane {
     private Slider      progressSlider;
     private Label       timeLabel;
 
-    public ExerciseVideoView(String exerciseName) {
+    /**
+     * @param exerciseName shown in the header; also used by VideoResolver
+     *                     to pick which mp4 to play
+     * @param onBack       fires on ✕ or "Back to Exercises" — typically routes
+     *                     to the selection page
+     * @param onStartLive  fires on "Start Live Session →" — typically routes
+     *                     to the live pose-detection screen
+     */
+    public ExerciseVideoView(String exerciseName, Runnable onBack, Runnable onStartLive) {
         this.exerciseName = exerciseName == null ? "Exercise" : exerciseName;
+        this.onBack       = onBack;
+        this.onStartLive  = onStartLive;
 
         getStylesheets().add(getClass().getResource("/styles/styles.css").toExternalForm());
         setStyle("-fx-background-color: #9389B1;");
@@ -130,7 +140,8 @@ public class ExerciseVideoView extends StackPane {
         btn.setStyle(normal);
         btn.setOnMouseEntered(e -> btn.setStyle(hover));
         btn.setOnMouseExited(e  -> btn.setStyle(normal));
-        btn.setOnMouseClicked(e -> goToLiveSession());
+        // ✕ means cancel — back to the selection grid, not forward into the session.
+        btn.setOnMouseClicked(e -> doBack());
         return btn;
     }
 
@@ -262,11 +273,7 @@ public class ExerciseVideoView extends StackPane {
 
         Button back = new Button("Back to Exercises");
         back.getStyleClass().add("btn-secondary");
-        back.setOnAction(e -> {
-            shutdownPlayer();
-            Scene s = getScene();
-            if (s != null) s.setRoot(new ExerciseSelectionPage());
-        });
+        back.setOnAction(e -> doBack());
 
         HBox actions = new HBox(12, startLive, back);
 
@@ -284,8 +291,12 @@ public class ExerciseVideoView extends StackPane {
 
     private void goToLiveSession() {
         shutdownPlayer();
-        Scene s = getScene();
-        if (s != null) s.setRoot(new posedetection(exerciseName));
+        if (onStartLive != null) onStartLive.run();
+    }
+
+    private void doBack() {
+        shutdownPlayer();
+        if (onBack != null) onBack.run();
     }
 
     // Called from a few different spots, so it has to be OK to run more than once.
