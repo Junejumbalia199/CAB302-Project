@@ -1,4 +1,4 @@
-package com.formcoach.home;
+package com.formcoach.runexercise;
 
-public class home {
+public class runexercise {
 }

@@ -1,4 +1,3 @@
-/*
 package com.formcoach.tests;
 
 import org.junit.jupiter.api.*;
@@ -25,4 +24,3 @@ public class textoutputTESTS {
 
     }
 }
-*/
