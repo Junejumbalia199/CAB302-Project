@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="CAB302-Project" />
         <module name="javafx-auth" />
+        <module name="FormCoach" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

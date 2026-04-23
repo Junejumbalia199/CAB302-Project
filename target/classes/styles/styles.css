@@ -1,11 +1,7 @@
-/* =========================
-   ROOT VARIABLES
-========================= */
 .root {
     -fx-font-family: "Segoe UI", "Inter", sans-serif;
     -fx-background-color: linear-gradient(to bottom right, #f5f7fa, #e9eef5);
 
-    /* Color palette */
     -primary-color: #4a90e2;
     -primary-dark: #2f6fc2;
     -text-primary: #1f2937;
@@ -14,13 +10,11 @@
     -card-bg: #ffffff;
 }
 
-/* =========================
-   NAVBAR
-========================= */
-.navbar {
-    -fx-background-color: white;
-    -fx-padding: 12 20;
-    -fx-border-color: transparent transparent #e5e7eb transparent;
+.nav-bar {
+    -fx-padding: 20 60 10 60;
+    -fx-alignment: CENTER_LEFT;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
 .navbar-title {
@@ -45,9 +39,6 @@
     -fx-background-radius: 8;
 }
 
-/* =========================
-   HEADINGS / TEXT
-========================= */
 .heading-xl {
     -fx-font-size: 36px;
     -fx-font-weight: bold;
@@ -69,9 +60,6 @@
     -fx-text-fill: -text-primary;
 }
 
-/* =========================
-   BADGES
-========================= */
 .badge {
     -fx-background-color: #e6f0fa;
     -fx-text-fill: -primary-color;
@@ -80,14 +68,10 @@
     -fx-font-size: 12px;
 }
 
-/* =========================
-   BUTTONS
-========================= */
 .button {
     -fx-cursor: hand;
 }
 
-/* Primary button */
 .btn-primary {
     -fx-background-color: -primary-color;
     -fx-text-fill: white;
@@ -99,7 +83,6 @@
     -fx-background-color: -primary-dark;
 }
 
-/* Secondary button */
 .btn-secondary {
     -fx-background-color: white;
     -fx-border-color: -border-color;
@@ -112,7 +95,6 @@
     -fx-background-color: #f9fafb;
 }
 
-/* Dark button (login) */
 .btn-dark {
     -fx-background-color: #111827;
     -fx-text-fill: white;
@@ -124,7 +106,6 @@
     -fx-background-color: #000000;
 }
 
-/* Icon round button */
 .btn-circle {
     -fx-background-color: -primary-color;
     -fx-text-fill: white;
@@ -133,9 +114,6 @@
     -fx-pref-height: 50;
 }
 
-/* =========================
-   CARDS
-========================= */
 .card {
     -fx-background-color: -card-bg;
     -fx-background-radius: 12;
@@ -144,7 +122,6 @@
     -fx-border-radius: 12;
 }
 
-/* Small stat cards */
 .stat-card {
     -fx-background-color: white;
     -fx-background-radius: 10;
@@ -153,9 +130,7 @@
     -fx-border-radius: 10;
 }
 
-/* =========================
-   INPUT FIELDS
-========================= */
+
 .text-field, .password-field {
     -fx-background-color: #f9fafb;
     -fx-border-color: -border-color;
@@ -169,17 +144,11 @@
     -fx-background-color: white;
 }
 
-/* =========================
-   DIVIDERS
-========================= */
 .divider {
     -fx-background-color: #e5e7eb;
     -fx-pref-height: 1;
 }
 
-/* =========================
-   PROFILE SPECIFIC
-========================= */
 .avatar {
     -fx-background-color: #e6f0fa;
     -fx-background-radius: 50%;
@@ -199,9 +168,6 @@
     -fx-text-fill: -text-secondary;
 }
 
-/* =========================
-   LOGIN CARD
-========================= */
 .login-card {
     -fx-background-color: white;
     -fx-background-radius: 16;
@@ -209,9 +175,6 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 20, 0.2, 0, 4);
 }
 
-/* =========================
-   LINKS
-========================= */
 .link {
     -fx-text-fill: -primary-color;
     -fx-underline: false;
@@ -221,9 +184,6 @@
     -fx-underline: true;
 }
 
-/* =========================
-   FLOATING CHAT BUTTON
-========================= */
 .chat-button {
     -fx-background-color: -primary-color;
     -fx-text-fill: white;
