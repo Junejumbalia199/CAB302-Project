@@ -14,6 +14,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
+import java.net.URL;
+
 /**
  * Live exercise session placeholder. The real pose pipeline lives in
  * main.py (MediaPipe) and isn't embedded in the JavaFX app yet — this
@@ -73,8 +75,17 @@ public class runexercise {
         root.getChildren().addAll(header, feed, hint);
 
         Scene scene = new Scene(root, 1280, 760);
+        applyCss(scene);
         stage.setScene(scene);
         stage.setTitle("FormCoach - " + exerciseName);
         stage.show();
+    }
+
+    private void applyCss(Scene scene) {
+        URL css = getClass().getResource("/styles/profile.css");
+        if (css == null) {
+            throw new IllegalStateException("Could not load /styles/profile.css");
+        }
+        scene.getStylesheets().add(css.toExternalForm());
     }
 }
