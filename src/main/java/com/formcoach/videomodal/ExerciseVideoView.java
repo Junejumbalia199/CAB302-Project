@@ -68,7 +68,7 @@ public class ExerciseVideoView extends StackPane {
         this.onStartLive  = onStartLive;
 
         getStylesheets().add(getClass().getResource("/styles/styles.css").toExternalForm());
-        setStyle("-fx-background-color: #9389B1;");
+        setStyle("-fx-background-color: linear-gradient(to bottom right, #f5f7fa, #e9eef5);");
 
         VBox modal = buildModal();
         getChildren().add(modal);
