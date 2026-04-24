@@ -9,12 +9,9 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.Window;
-
-// imports for gemini api handling
 import io.github.cdimascio.dotenv.Dotenv;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -23,17 +20,11 @@ import java.net.http.HttpResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
-/**
- * AI Coach Chatbot - displays as a modern popup overlay on the existing window.
- */
 public class chatbot {
 
     private static final Dotenv dotenv = Dotenv.load();
-    // .trim() is vital here to ensure no hidden \n or spaces from the .env break the URL
     private static final String API_KEY = (dotenv.get("API_KEY") != null) ? dotenv.get("API_KEY").trim() : "";
-
-    // Using v1beta and the standard gemini-1.5-flash name
-    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + API_KEY;
+    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
 
     private static Popup chatPopup;
     private static VBox messageContainer;
@@ -44,55 +35,68 @@ public class chatbot {
         if (chatPopup == null) {
             chatPopup = new Popup();
 
-            Label title = new Label("💡 AI Coach");
-            title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+            // Root VBox
+            VBox root = new VBox();
+            root.getStyleClass().add("chat-root");
+            root.setPrefWidth(350);
 
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
+            // Load External CSS
+            root.getStylesheets().add(chatbot.class.getResource("/styles/chatbot.css").toExternalForm());
+
+            // --- HEADER ---
+            VBox headerText = new VBox(2);
+            Label title = new Label("FormCoach AI");
+            title.getStyleClass().add("chat-title");
+            Label subTitle = new Label("Ask me anything about fitness");
+            subTitle.getStyleClass().add("chat-subtitle");
+            headerText.getChildren().addAll(title, subTitle);
 
             Button closeBtn = new Button("✕");
-            closeBtn.setStyle("-fx-background-color: #e2e8f0; -fx-text-fill: #64748b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 4 8; -fx-background-radius: 50; -fx-cursor: hand;");
+            closeBtn.getStyleClass().add("close-button");
             closeBtn.setOnAction(e -> hideChatbot());
 
-            HBox header = new HBox(8, title, spacer, closeBtn);
+            HBox header = new HBox();
+            header.getStyleClass().add("chat-header");
             header.setAlignment(Pos.CENTER_LEFT);
-            header.setPadding(new Insets(0, 0, 8, 0));
-            header.setStyle("-fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;");
+            HBox.setHgrow(headerText, Priority.ALWAYS);
+            header.getChildren().addAll(headerText, closeBtn);
 
-            VBox root = new VBox(12);
-            root.setPadding(new Insets(16));
-            root.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e2e8f0; -fx-border-width: 1; -fx-background-radius: 12; -fx-border-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 0, 5);");
-
-            messageContainer = new VBox(8);
-            messageContainer.setPadding(new Insets(8));
+            // --- MESSAGE AREA ---
+            messageContainer = new VBox(12);
+            messageContainer.setPadding(new Insets(15));
 
             scrollPane = new ScrollPane(messageContainer);
+            scrollPane.getStyleClass().add("chat-scroll-pane");
             scrollPane.setFitToWidth(true);
-            scrollPane.setStyle("-fx-control-inner-background: #f8fafc; -fx-background-color: #f8fafc;");
-            scrollPane.setPrefHeight(350);
-
-            addCoachMessage("Hey! 👋 Ask me anything about your form.");
-
+            scrollPane.setPrefHeight(400);
             VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
+            addCoachMessage("Hi! I'm your FormCoach assistant. Ask me anything about exercises, proper form, workout routines, or injury prevention.");
+
+            // --- INPUT AREA ---
             input = new TextField();
-            input.setPromptText("Ask about your form...");
+            input.setPromptText("Ask about form, exercises...");
+            input.getStyleClass().add("chat-input");
             HBox.setHgrow(input, Priority.ALWAYS);
 
-            Button send = new Button("Send");
-            send.setStyle("-fx-background-color: #0ea5e9; -fx-text-fill: white; -fx-font-weight: bold;");
-            send.setOnAction(e -> onSend());
+            // Replicating the circle 'X' or Send feel from the image
+            Button sendBtn = new Button("✕");
+            sendBtn.getStyleClass().add("close-button");
+            sendBtn.setOnAction(e -> onSend());
 
-            HBox inputRow = new HBox(8, input, send);
-            inputRow.setPadding(new Insets(8, 0, 0, 0));
+            input.setOnAction(e -> onSend());
+
+            HBox inputRow = new HBox(10, input, sendBtn);
+            inputRow.getStyleClass().add("input-container");
+            inputRow.setAlignment(Pos.CENTER);
 
             root.getChildren().addAll(header, scrollPane, inputRow);
             chatPopup.getContent().add(root);
         }
 
         if (owner != null) {
-            chatPopup.setX(owner.getX() + owner.getWidth() - 420);
-            chatPopup.setY(owner.getY() + owner.getHeight() - 570);
+            chatPopup.setX(owner.getX() + owner.getWidth() - 380);
+            chatPopup.setY(owner.getY() + owner.getHeight() - 620);
         }
         chatPopup.show(owner);
     }
@@ -107,16 +111,10 @@ public class chatbot {
 
         addUserMessage(msg);
         input.clear();
-        addCoachMessage("Coach is thinking...");
 
         Thread thread = new Thread(() -> {
             String aiResponse = getGeminiResponse(msg);
-            Platform.runLater(() -> {
-                if (messageContainer.getChildren().size() > 0) {
-                    messageContainer.getChildren().remove(messageContainer.getChildren().size() - 1);
-                }
-                addCoachMessage(aiResponse);
-            });
+            Platform.runLater(() -> addCoachMessage(aiResponse));
         });
         thread.setDaemon(true);
         thread.start();
@@ -125,10 +123,12 @@ public class chatbot {
     private static void addUserMessage(String text) {
         Label message = new Label(text);
         message.setWrapText(true);
-        message.setStyle("-fx-text-fill: white; -fx-padding: 10;");
+        message.getStyleClass().add("user-text");
+
         VBox bubble = new VBox(message);
-        bubble.setStyle("-fx-background-color: #0ea5e9; -fx-background-radius: 12;");
-        bubble.setMaxWidth(250);
+        bubble.getStyleClass().add("user-bubble");
+        bubble.setMaxWidth(260);
+
         HBox row = new HBox(bubble);
         row.setAlignment(Pos.CENTER_RIGHT);
         messageContainer.getChildren().add(row);
@@ -138,10 +138,12 @@ public class chatbot {
     private static void addCoachMessage(String text) {
         Label message = new Label(text);
         message.setWrapText(true);
-        message.setStyle("-fx-text-fill: #1e293b; -fx-padding: 10;");
+        message.getStyleClass().add("coach-text");
+
         VBox bubble = new VBox(message);
-        bubble.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 12;");
-        bubble.setMaxWidth(250);
+        bubble.getStyleClass().add("coach-bubble");
+        bubble.setMaxWidth(260);
+
         HBox row = new HBox(bubble);
         row.setAlignment(Pos.CENTER_LEFT);
         messageContainer.getChildren().add(row);

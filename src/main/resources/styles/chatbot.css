@@ -1,0 +1,90 @@
+/* Container styling */
+.chat-root {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 20, 0, 0, 10);
+    -fx-border-color: #f1f5f9;
+    -fx-border-width: 1;
+    -fx-margin-right: 20;
+}
+
+/* Header styling */
+.chat-header {
+    -fx-padding: 15 20;
+    -fx-background-color: #f8fafc;
+    -fx-background-radius: 20 20 0 0;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.chat-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+}
+
+.chat-subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: #64748b;
+}
+
+/* Message area */
+.chat-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.chat-scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Bubbles */
+.coach-bubble {
+    -fx-background-color: #d6dde6;
+    -fx-background-radius: 12;
+    -fx-padding: 12;
+}
+
+.user-bubble {
+    -fx-background-color: #0ea5e9;
+    -fx-background-radius: 12;
+    -fx-padding: 12;
+}
+
+.coach-text {
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 14px;
+}
+
+.user-text {
+    -fx-fill: white;
+    -fx-font-size: 14px;
+}
+
+/* Input Area */
+.input-container {
+    -fx-padding: 15;
+    -fx-background-color: white;
+    -fx-background-radius: 0 0 20 20;
+}
+
+.chat-input {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 25;
+    -fx-padding: 10 20;
+    -fx-prompt-text-fill: #94a3b8;
+    -fx-border-color: transparent;
+}
+
+.chat-input:focused {
+    -fx-border-color: #4a90e2;
+    -fx-border-radius: 25;
+}
+
+.close-button {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 50;
+    -fx-cursor: hand;
+    -fx-text-fill: #64748b;
+}
