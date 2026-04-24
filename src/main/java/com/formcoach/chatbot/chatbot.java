@@ -95,8 +95,11 @@ public class chatbot {
         }
 
         if (owner != null) {
-            chatPopup.setX(owner.getX() + owner.getWidth() - 380);
-            chatPopup.setY(owner.getY() + owner.getHeight() - 620);
+            // Offset the popup from the bottom and right edges (32px)
+            int x_margin = 26;
+            int y_margin = -30;
+            chatPopup.setX(owner.getX() + owner.getWidth() - 380 - x_margin);
+            chatPopup.setY(owner.getY() + owner.getHeight() - 620 - y_margin);
         }
         chatPopup.show(owner);
     }
