@@ -1,61 +1,69 @@
 package com.formcoach.chatbot;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
+import javafx.stage.Popup;
 import javafx.stage.Window;
 
 /**
- * AI Coach Chatbot - displays as a modern floating popup window at the bottom right.
+ * AI Coach Chatbot - displays as a modern popup overlay on the existing window.
  * Messages are displayed as chat bubbles with different styling for user vs. coach.
  */
 public class chatbot {
 
-    private static Stage chatStage;
+    private static Popup chatPopup;
     private static VBox messageContainer;
     private static TextField input;
+    private static ScrollPane scrollPane;
 
     /**
-     * Show the chatbot popup positioned at the bottom right of the owner window.
+     * Show the chatbot popup overlay positioned at the bottom right of the owner window.
      */
     public static void showChatbot(Window owner) {
-        if (chatStage == null) {
-            chatStage = new Stage();
-            chatStage.setTitle("AI Coach");
-            chatStage.setWidth(380);
-            chatStage.setHeight(550);
+        if (chatPopup == null) {
+            chatPopup = new Popup();
+
+            // Header with close button
+            Label title = new Label("💡 AI Coach");
+            title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            Button closeBtn = new Button("✕");
+            closeBtn.setStyle("-fx-background-color: #e2e8f0; -fx-text-fill: #64748b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 4 8; -fx-background-radius: 50; -fx-cursor: hand; -fx-border-color: transparent;");
+            closeBtn.setOnAction(e -> hideChatbot());
+
+            HBox header = new HBox(8, title, spacer, closeBtn);
+            header.setAlignment(Pos.CENTER_LEFT);
+            header.setPadding(new Insets(0, 0, 8, 0));
+            header.setStyle("-fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;");
 
             // Main container
             VBox root = new VBox(12);
             root.setPadding(new Insets(16));
-            root.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e2e8f0; -fx-border-width: 1;");
-
-            // Header
-            Label title = new Label("💡 AI Coach");
-            title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
-
-            HBox header = new HBox(title);
-            header.setPadding(new Insets(0, 0, 8, 0));
-            header.setStyle("-fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;");
+            root.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e2e8f0; -fx-border-width: 1; -fx-background-radius: 12; -fx-border-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 0, 5);");
 
             // Scrollable message area
             messageContainer = new VBox(8);
             messageContainer.setPadding(new Insets(8));
             messageContainer.setStyle("-fx-background-color: transparent;");
 
-            ScrollPane scrollPane = new ScrollPane(messageContainer);
+            scrollPane = new ScrollPane(messageContainer);
             scrollPane.setFitToWidth(true);
             scrollPane.setStyle("-fx-control-inner-background: #f8fafc; -fx-background-color: #f8fafc;");
             scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scrollPane.setPrefHeight(350);
 
             // Add initial coach message
             addCoachMessage("Hey! 👋 Ask me anything about your form.");
@@ -79,20 +87,24 @@ public class chatbot {
 
             root.getChildren().addAll(header, scrollPane, inputRow);
 
-            Scene scene = new Scene(root);
-            chatStage.setScene(scene);
+            chatPopup.getContent().add(root);
         }
 
         // Position at bottom right of owner window
         if (owner != null) {
-            double x = owner.getX() + owner.getWidth() - chatStage.getWidth() - 20;
-            double y = owner.getY() + owner.getHeight() - chatStage.getHeight() - 20;
-            chatStage.setX(x);
-            chatStage.setY(y);
+            double x = owner.getX() + owner.getWidth() - 400 - 20; // 400 is approx width
+            double y = owner.getY() + owner.getHeight() - 550 - 20; // 550 is height
+            chatPopup.setX(x);
+            chatPopup.setY(y);
         }
 
-        chatStage.show();
-        chatStage.toFront();
+        chatPopup.show(owner);
+    }
+
+    public static void hideChatbot() {
+        if (chatPopup != null) {
+            chatPopup.hide();
+        }
     }
 
     private static void onSend() {
@@ -144,8 +156,11 @@ public class chatbot {
     }
 
     private static void scrollToBottom() {
-        // Schedule to run after layout pass
-        messageContainer.layout();
+        Platform.runLater(() -> {
+            if (scrollPane != null) {
+                scrollPane.setVvalue(1.0);
+            }
+        });
     }
 
     /** Keyword-matching stand-in until there's a real model behind it. */
