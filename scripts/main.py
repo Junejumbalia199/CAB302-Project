@@ -2,6 +2,7 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import cv2
+import numpy as np
 
 model_path = "pose_landmarker_full.task"
 
@@ -11,8 +12,10 @@ PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
 PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
+debug_mode = True   # Set to True to make pose landmarks visible
+highlight_points = [3, 9] # Add any integer 0-32 to turn those nodes blue, to help with identifying a specific landmark
+
 # Pose connections (pairs of landmark indices to draw lines between)
-# This is purely for visualisation and debugging to make sure it's detecting positions accurately
 POSE_CONNECTIONS = [
     (0, 1), (1, 2), (2, 3), (3, 7),
     (0, 4), (4, 5), (5, 6), (6, 8),
@@ -68,10 +71,13 @@ Legend (left and right is from user's perspective):
 
 latest_result = None
 
+
 def store_result(result: PoseLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     global latest_result
     latest_result = result
 
+    # Temporary print to show what the output value currently is - in future you will call the variable latest_result
+    print('pose landmarker result: {}'.format(latest_result))
 
 def draw_landmarks(frame, result: PoseLandmarkerResult):
     if not result or not result.pose_landmarks:
@@ -94,7 +100,7 @@ def draw_landmarks(frame, result: PoseLandmarkerResult):
 
         # Draw landmark dots
         for idx, point in enumerate(points):
-            elif idx in [-1]:
+            if idx in highlight_points:
                 color = (255, 0, 0)    # Change idx (-1) to single out that point by giving it a unique color
             elif idx in LEFT_LANDMARKS:
                 color = (0, 255, 0)    # Green for left
@@ -129,7 +135,10 @@ with PoseLandmarker.create_from_options(options) as landmarker:
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
         landmarker.detect_async(mp_image, frame_timestamp_ms)
 
-        annotated_frame = draw_landmarks(frame, latest_result)
+        if debug_mode:
+            annotated_frame = draw_landmarks(frame, latest_result)
+        else:
+            annotated_frame = frame
 
         cv2.imshow("Pose Landmarker", annotated_frame)
 
