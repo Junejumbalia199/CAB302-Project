@@ -47,6 +47,11 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.45.3.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-vertexai</artifactId>
+            <version>0.1.0</version> <!-- Check for the latest version -->
+        </dependency>
     </dependencies>
 
     <build>
