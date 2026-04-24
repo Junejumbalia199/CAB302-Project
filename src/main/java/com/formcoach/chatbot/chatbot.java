@@ -14,6 +14,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.Window;
 
+
+
 /**
  * AI Coach Chatbot - displays as a modern popup overlay on the existing window.
  * Messages are displayed as chat bubbles with different styling for user vs. coach.
