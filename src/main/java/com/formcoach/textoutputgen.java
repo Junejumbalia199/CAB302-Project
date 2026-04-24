@@ -26,7 +26,6 @@ public class textoutputgen {
     "right pinky", "left index", "right index", "left thumb", "right thumb", "left hip", "right hip",
     "left knee", "right knee", "left ankle", "right ankle", "left heel", "right heel", "left foot index",
             "right foot index"};
-    //dictionary to assign pose point indexes from result array to names for output
 
     // eventually going to be a method that takes the coordinate inputs and gets text outputs
     public String output(Integer[] userPose, Integer[] idealPose, String exerciseType) { // will take two inputs, need to check type
