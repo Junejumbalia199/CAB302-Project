@@ -14,6 +14,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.Window;
 
+// imports for gemini api handling
+import io.github.cdimascio.dotenv.Dotenv;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 
 /**
@@ -21,6 +29,10 @@ import javafx.stage.Window;
  * Messages are displayed as chat bubbles with different styling for user vs. coach.
  */
 public class chatbot {
+
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String API_KEY = dotenv.get("API_KEY");
+    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
 
     private static Popup chatPopup;
     private static VBox messageContainer;
@@ -116,9 +128,22 @@ public class chatbot {
         addUserMessage(msg);
         input.clear();
 
-        // Simulate bot response
-        String reply = reply(msg);
-        addCoachMessage(reply);
+        // Create a "Thinking..." bubble that we can update later
+        addCoachMessage("Coach is thinking...");
+
+        // Run the API call in a background thread
+        Thread thread = new Thread(() -> {
+            String aiResponse = getGeminiResponse(msg);
+
+            // Update the UI back on the JavaFX Application Thread
+            Platform.runLater(() -> {
+                // Remove the "Thinking..." message (the last child)
+                messageContainer.getChildren().remove(messageContainer.getChildren().size() - 1);
+                addCoachMessage(aiResponse);
+            });
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private static void addUserMessage(String text) {
@@ -165,17 +190,42 @@ public class chatbot {
         });
     }
 
-    /** Keyword-matching stand-in until there's a real model behind it. */
-    private static String reply(String userMessage) {
-        String lower = userMessage.toLowerCase();
-        if (lower.contains("pushup") || lower.contains("push-up"))
-            return "Keep your core tight and your elbows at ~45° from your torso. 💪";
-        if (lower.contains("squat"))
-            return "Knees track over your toes, chest up, sit back into your heels. 🏋️";
-        if (lower.contains("plank"))
-            return "Straight line from shoulders to heels, don't let your hips sag. 📏";
-        if (lower.contains("form") || lower.contains("technique"))
-            return "Great question! Focus on keeping proper alignment throughout the movement. 🎯";
-        return "I'm here to help! Ask me about any exercise or form concerns. 🤖";
+    private static String getGeminiResponse(String userMessage) {
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            // System instructions to keep the bot on track
+            String systemInstruction = "You are a professional fitness coach. " +
+                    "Only provide advice related to exercise, form, and fitness.";
+
+            // Construct the JSON payload
+            JSONObject json = new JSONObject();
+            JSONArray contents = new JSONArray();
+            JSONObject parts = new JSONObject();
+            parts.put("text", systemInstruction + "\n\nUser Question: " + userMessage);
+            contents.put(new JSONObject().put("parts", new JSONArray().put(parts)));
+            json.put("contents", contents);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(GEMINI_URL))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Parse the response
+            JSONObject responseJson = new JSONObject(response.body());
+            return responseJson.getJSONArray("candidates")
+                    .getJSONObject(0)
+                    .getJSONObject("content")
+                    .getJSONArray("parts")
+                    .getJSONObject(0)
+                    .getString("text");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Sorry, I'm having trouble connecting to my fitness brain right now. 😅";
+        }
     }
 }
