@@ -4,7 +4,7 @@ from mediapipe.tasks.python import vision
 import cv2
 import numpy as np
 
-model_path = "pose_landmarker_full.task"
+model_path = "../src/main/resources/assets/pose_landmarker_full.task"
 
 BaseOptions = mp.tasks.BaseOptions
 PoseLandmarker = mp.tasks.vision.PoseLandmarker
