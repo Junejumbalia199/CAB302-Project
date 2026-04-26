@@ -1,9 +1,9 @@
-package tests;
+//package com.formcoach.textoutputgen;
 
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class textoutputTESTS {
+class textoutputTest {
     @Test
     public void testForBadInput() { //test for regular bad positioning
 

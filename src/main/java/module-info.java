@@ -18,4 +18,6 @@ module com.formcoach {
     exports com.formcoach.profile;
     exports com.formcoach.chatbot;
     opens com.formcoach.profile to javafx.fxml;
+    exports com.formcoach.textoutputgen;
+    opens com.formcoach.textoutputgen to javafx.graphics;
 }

@@ -1,4 +1,4 @@
-package com.formcoach;
+package com.formcoach.textoutputgen;
 
 import java.text.MessageFormat;
 import java.util.concurrent.ThreadLocalRandom;
