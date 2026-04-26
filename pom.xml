@@ -70,6 +70,10 @@
     </dependencies>
 
     <build>
+        <!-- Tests live under src/main/test/ in this repo (non-Maven-standard layout
+             carried over from the IntelliJ project structure). Point Surefire there
+             explicitly so `mvn test` actually picks them up. -->
+        <testSourceDirectory>src/main/test</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.openjfx</groupId>
