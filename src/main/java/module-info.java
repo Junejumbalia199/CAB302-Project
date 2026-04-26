@@ -2,11 +2,14 @@ module com.formcoach {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.media;
+    requires javafx.swing;
+    requires java.desktop;
     requires java.net.http;
     requires java.sql;
     requires org.xerial.sqlitejdbc;
     requires io.github.cdimascio.dotenv.java;
     requires org.json;
+    requires webcam.capture;
 
     opens com.formcoach to javafx.graphics;
     opens com.formcoach.landingpage to javafx.graphics;

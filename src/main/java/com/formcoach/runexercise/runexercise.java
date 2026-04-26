@@ -1,5 +1,6 @@
 package com.formcoach.runexercise;
 
+import com.formcoach.camera.CameraView;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -53,27 +54,29 @@ public class runexercise {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        // Swapped out the dark placeholder rectangle for an actual webcam
+        // feed. CameraView handles the messy bits (opening the camera,
+        // running the grab loop, falling back gracefully if there's no
+        // camera) — I just need to remember to call stop() on it before
+        // the user leaves this page, otherwise the camera light stays on.
+        CameraView cam = new CameraView(900, 500);
+        cam.start();
+
         Button back = new Button("← Back to exercises");
         /*back.setStyle("-fx-background-color: white; -fx-text-fill: #1f2937;"
                 + "-fx-border-color: #e5e7eb; -fx-border-radius: 8;"
                 + "-fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;");
                 */
         back.getStyleClass().add("btn-primary");
-        back.setOnAction(e -> { if (onBack != null) onBack.run(); });
+        back.setOnAction(e -> {
+            cam.stop();
+            if (onBack != null) onBack.run();
+        });
 
         HBox header = new HBox(16, title, spacer, back);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        // Fake camera feed — dark rounded rectangle with a caption.
-        Rectangle canvas = new Rectangle(900, 500, Color.web("#111827"));
-        canvas.setArcWidth(16);
-        canvas.setArcHeight(16);
-
-        Label overlay = new Label("Camera preview placeholder");
-        overlay.setTextFill(Color.web("#9ca3af"));
-        overlay.setStyle("-fx-font-size: 16px;");
-
-        StackPane feed = new StackPane(canvas, overlay);
+        StackPane feed = new StackPane(cam);
         feed.setAlignment(Pos.CENTER);
 
         // replace with hint on how to run program.
@@ -107,6 +110,11 @@ public class runexercise {
         applyCss(scene);
         stage.setScene(scene);
         stage.setTitle("FormCoach - " + exerciseName);
+        // If the user just X-es out of the window without going Back, the
+        // Back handler never fires and the camera would stay open. Caught
+        // me out the first time — second launch couldn't open the camera
+        // because the previous run still had it. Belt and braces.
+        stage.setOnCloseRequest(e -> cam.stop());
         stage.show();
     }
 

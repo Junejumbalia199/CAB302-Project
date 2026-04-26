@@ -1,0 +1,56 @@
+name: CI
+
+# Runs on every push to master and on every pull request that targets master.
+# Anything else (feature branches without an open PR) doesn't trigger this
+# so we don't burn Actions minutes on work-in-progress branches.
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build & test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          # Caches ~/.m2/repository between runs so dependency downloads
+          # only happen on a cold cache or a pom.xml change.
+          cache: maven
+
+      # JavaFX needs a display on Linux. CI runners are headless, so we
+      # spin up a virtual one. This only matters if any test instantiates
+      # JavaFX classes — but it's cheap insurance.
+      - name: Install Xvfb (headless display for JavaFX)
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Compile
+        run: mvn -B -ntp compile
+
+      - name: Run tests
+        run: xvfb-run --auto-servernum mvn -B -ntp test
+        env:
+          # The chatbot loads .env at class init via Dotenv.load(); on CI
+          # there's no .env file, so I provide a dummy key to keep that
+          # static initializer from blowing up. Tests don't actually call
+          # Gemini.
+          API_KEY: ci-placeholder-not-a-real-key
+
+      # Optional: keep the surefire reports as a downloadable artifact so
+      # if a test fails on CI you can grab the full log from the run page.
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports
+          if-no-files-found: ignore
