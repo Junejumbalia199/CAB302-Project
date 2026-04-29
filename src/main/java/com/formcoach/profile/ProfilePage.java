@@ -10,6 +10,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.net.URL;
 
@@ -113,8 +115,16 @@ public class ProfilePage {
         navBar.getStyleClass().add("nav-bar");
         navBar.setAlignment(Pos.CENTER_LEFT);
 
-        Text logo = new Text("FormCoach");
-        logo.getStyleClass().add("logo-text");
+        Image logoImage = new Image(getClass().getResourceAsStream("/assets/FClogo.png"));
+        ImageView logoIcon = new ImageView(logoImage);
+        logoIcon.setFitHeight(36);
+        logoIcon.setPreserveRatio(true);
+
+        Text logoText = new Text("FormCoach");
+        logoText.getStyleClass().add("logo-text");
+
+        HBox logo = new HBox(10, logoIcon, logoText);
+        logo.setAlignment(Pos.CENTER_LEFT);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

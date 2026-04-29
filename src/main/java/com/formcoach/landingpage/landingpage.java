@@ -9,6 +9,8 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class landingpage extends StackPane {
 
@@ -22,8 +24,16 @@ public class landingpage extends StackPane {
         HBox navBar = new HBox(40);
         navBar.getStyleClass().add("nav-bar");
 
-        Text logo = new Text("FormCoach");
-        logo.getStyleClass().add("logo-text");
+        Image logoImage = new Image(getClass().getResourceAsStream("/assets/FClogo.png"));
+        ImageView logoIcon = new ImageView(logoImage);
+        logoIcon.setFitHeight(36);
+        logoIcon.setPreserveRatio(true);
+
+        Text logoText = new Text("FormCoach");
+        logoText.getStyleClass().add("logo-text");
+
+        HBox logo = new HBox(10, logoIcon, logoText);
+        logo.setAlignment(Pos.CENTER_LEFT);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
