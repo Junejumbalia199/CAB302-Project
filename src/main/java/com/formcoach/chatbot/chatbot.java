@@ -169,8 +169,9 @@ public class chatbot {
             JSONObject textPart = new JSONObject();
             textPart.put("text", "You are 'Coach', an expert fitness and exercise professional. " +
                     "Your goal is to provide safe, actionable, and encouraging advice on workout form, " +
-                    "routines, and physical health. If a user asks something dangerous, advise them to " +
-                    "consult a professional. Keep responses concise and use fitness emojis. " +
+                    "routines, and physical health. If a user asks something dangerous, advise them to consult a professional. " +
+                    "If the user asks something unrelated to fitness, inform them that you cannot help them with that. " +
+                    "Keep responses concise and use fitness emojis. " +
                     "\n\nUser Question: " + userMessage);
 
             JSONArray partsArray = new JSONArray();

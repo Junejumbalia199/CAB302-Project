@@ -1,6 +1,7 @@
 package com.formcoach.runexercise;
 
 import com.formcoach.camera.CameraView;
+import com.formcoach.chatbot.chatbot;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -121,6 +122,7 @@ public class runexercise {
     private void applyCss(Scene scene) {
         URL css = getClass().getResource("/styles/styles.css");
         URL css2 = getClass().getResource("/styles/selection.css");
+        URL css3 = getClass().getResource("/styles/landingpage.css");
         if (css == null) {
             throw new IllegalStateException("Could not load /styles/styles.css");
         }
@@ -129,6 +131,9 @@ public class runexercise {
         }
         scene.getStylesheets().add(css.toExternalForm());
         scene.getStylesheets().add(css2.toExternalForm());
+        if (css3 != null) {
+            scene.getStylesheets().add(css3.toExternalForm());
+        }
     }
 
     // append output to text area
@@ -152,24 +157,12 @@ public class runexercise {
         outer.setPickOnBounds(false);
         outer.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
-        HBox widget = new HBox(12);
-        widget.getStyleClass().add("chat-widget");
-        widget.setAlignment(Pos.CENTER_LEFT);
-        widget.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        Button fab = new Button("💬");
+        fab.getStyleClass().add("chat-fab");
+        fab.setTextFill(javafx.scene.paint.Color.WHITE);
+        fab.setOnAction(e -> chatbot.showChatbot(stage));
 
-        StackPane iconCircle = new StackPane();
-        iconCircle.getStyleClass().add("chat-icon-circle");
-
-        SVGPath chatIcon = new SVGPath();
-        chatIcon.setContent("M6 6 H18 Q20 6 20 8 V14 Q20 16 18 16 H11 L8 19 V16 H6 Q4 16 4 14 V8 Q4 6 6 6 Z");
-        chatIcon.setStyle("-fx-fill: white;");
-        iconCircle.getChildren().add(chatIcon);
-
-        widget.getChildren().addAll(iconCircle);
-
-        widget.setOnMouseClicked(e -> System.out.println("AI chatbot clicked"));
-
-        outer.getChildren().add(widget);
+        outer.getChildren().add(fab);
         return outer;
     }
 

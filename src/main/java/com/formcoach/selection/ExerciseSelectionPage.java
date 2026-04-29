@@ -1,5 +1,6 @@
 package com.formcoach.selection;
 
+import com.formcoach.chatbot.chatbot;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -18,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExerciseSelectionPage {
-
+    
     private static final int PAGE_SIZE = 3;
 
     private final Stage stage;
@@ -440,24 +441,12 @@ public class ExerciseSelectionPage {
         outer.setPickOnBounds(false);
         outer.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
-        HBox widget = new HBox(12);
-        widget.getStyleClass().add("chat-widget");
-        widget.setAlignment(Pos.CENTER_LEFT);
-        widget.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        Button fab = new Button("💬");
+        fab.getStyleClass().add("chat-fab");
+        fab.setTextFill(javafx.scene.paint.Color.WHITE);
+        fab.setOnAction(e -> chatbot.showChatbot(stage));
 
-        StackPane iconCircle = new StackPane();
-        iconCircle.getStyleClass().add("chat-icon-circle");
-
-        SVGPath chatIcon = new SVGPath();
-        chatIcon.setContent("M6 6 H18 Q20 6 20 8 V14 Q20 16 18 16 H11 L8 19 V16 H6 Q4 16 4 14 V8 Q4 6 6 6 Z");
-        chatIcon.setStyle("-fx-fill: white;");
-        iconCircle.getChildren().add(chatIcon);
-
-        widget.getChildren().addAll(iconCircle);
-
-        widget.setOnMouseClicked(e -> System.out.println("AI chatbot clicked"));
-
-        outer.getChildren().add(widget);
+        outer.getChildren().add(fab);
         return outer;
     }
 
@@ -503,6 +492,10 @@ public class ExerciseSelectionPage {
     }
 
     private void showTutorialPlaceholder(String exerciseName) {
+        Stage tutorialStage = new Stage();
+        tutorialStage.initOwner(stage);
+        tutorialStage.setTitle("FormCoach - " + exerciseName + " Tutorial");
+
         VBox card = new VBox(18);
         card.getStyleClass().add("dialog-card");
         card.setAlignment(Pos.CENTER);
@@ -521,7 +514,7 @@ public class ExerciseSelectionPage {
 
         Button back = new Button("Back");
         back.getStyleClass().add("btn-primary");
-        back.setOnAction(e -> show());
+        back.setOnAction(e -> tutorialStage.close());
 
         VBox wrapper = new VBox(card);
         wrapper.getStyleClass().add("root-pane");
@@ -530,9 +523,24 @@ public class ExerciseSelectionPage {
 
         card.getChildren().addAll(title, subtitle, back);
 
-        Scene scene = new Scene(wrapper, 1280, 760);
+        // Create chatbot button for the tutorial window
+        Button chatbotFab = new Button("💬");
+        chatbotFab.getStyleClass().add("chat-fab");
+        chatbotFab.setTextFill(javafx.scene.paint.Color.WHITE);
+        chatbotFab.setOnAction(e -> chatbot.showChatbot(tutorialStage));
+
+        VBox chatbotContainer = new VBox(chatbotFab);
+        chatbotContainer.setAlignment(Pos.BOTTOM_RIGHT);
+        chatbotContainer.setPadding(new Insets(0, 24, 24, 0));
+
+        BorderPane root = new BorderPane();
+        root.setCenter(wrapper);
+        root.setBottom(chatbotContainer);
+
+        Scene scene = new Scene(root, 800, 500);
         applyCss(scene);
-        stage.setScene(scene);
+        tutorialStage.setScene(scene);
+        tutorialStage.show();
     }
 
     private void applyCss(Scene scene) {
@@ -541,6 +549,11 @@ public class ExerciseSelectionPage {
             throw new IllegalStateException("Could not load /styles/selection.css");
         }
         scene.getStylesheets().add(css.toExternalForm());
+
+        URL landingCss = getClass().getResource("/styles/landingpage.css");
+        if (landingCss != null) {
+            scene.getStylesheets().add(landingCss.toExternalForm());
+        }
     }
 
     private static class ExerciseItem {
@@ -557,3 +570,5 @@ public class ExerciseSelectionPage {
         }
     }
 }
+
+

@@ -88,7 +88,7 @@ public class landingpage extends StackPane {
 
         mainLayout.getChildren().addAll(navBar, heroSection);
 
-        // chatbot button for me (nathan) to link to chatbot.java
+        // chatbot button
         Button fab = new Button("💬");
         fab.getStyleClass().add("chat-fab");
         fab.setTextFill(Color.WHITE);
