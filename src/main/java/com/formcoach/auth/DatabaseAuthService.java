@@ -8,6 +8,10 @@ public class DatabaseAuthService implements AuthService {
         this.userDAO = new SqliteUserDAO();
     }
 
+    public DatabaseAuthService(IUserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
+
     @Override
     public AuthResult login(String usernameOrEmail, String password) {
         User user;
