@@ -8,17 +8,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Finds my Kaggle API credentials.
- *
- * I check three places in this order (first one wins):
- *   1. KAGGLE_USERNAME + KAGGLE_KEY env vars — handy for CI or if I don't
- *      want a creds file sitting on disk.
- *   2. $KAGGLE_CONFIG_DIR/kaggle.json — in case I've overridden the location.
- *   3. ~/.kaggle/kaggle.json — where the official Kaggle CLI puts it.
- *
- * I deliberately didn't pull in Jackson/Gson just to parse this file. It's
- * always got the same two fields so a tiny regex does the job. If the file
- * is weird I'd rather throw than quietly misread it.
+ * Kaggle API credentials. Resolved from (in order): env vars, $KAGGLE_CONFIG_DIR/kaggle.json,
+ * ~/.kaggle/kaggle.json. Regex parser — no JSON dep needed for two fields.
  */
 public final class KaggleConfig {
 
@@ -46,17 +37,16 @@ public final class KaggleConfig {
     public String username() { return username; }
     public String key()      { return key; }
 
-    /** Find my credentials and return them, or blow up with a hint if I can't. */
+    /** Returns resolved credentials. Throws KaggleException if none found. */
     public static KaggleConfig load() throws KaggleException {
-        // Try env vars first. I like this path because it means I don't
-        // have to leave a creds file on disk, and CI just sets them for me.
+        // Env vars first.
         String envUser = System.getenv("KAGGLE_USERNAME");
         String envKey  = System.getenv("KAGGLE_KEY");
         if (isNonEmpty(envUser) && isNonEmpty(envKey)) {
             return new KaggleConfig(envUser, envKey);
         }
 
-        // No env vars — fall back to the kaggle.json file on disk.
+        // Fall back to kaggle.json on disk.
         Path candidate = resolveJsonPath();
         if (!Files.exists(candidate)) {
             throw new KaggleException(SETUP_HINT);
@@ -66,8 +56,7 @@ public final class KaggleConfig {
         try {
             raw = Files.readString(candidate);
         } catch (IOException e) {
-            throw new KaggleException(
-                    "Could not read " + candidate + ": " + e.getMessage(), e);
+            throw new KaggleException("Could not read " + candidate + ": " + e.getMessage(), e);
         }
 
         String user = firstMatch(USERNAME_PATTERN, raw);
@@ -99,6 +88,5 @@ public final class KaggleConfig {
         return s != null && !s.isBlank();
     }
 
-    // No toString() on purpose. The last thing I want is my API key landing
-    // in a log file somewhere because someone printed a KaggleConfig.
+    // No toString() — keeps API key out of accidental logs.
 }

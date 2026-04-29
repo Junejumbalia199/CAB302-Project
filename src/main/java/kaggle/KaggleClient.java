@@ -13,20 +13,9 @@ import java.time.Duration;
 import java.util.Base64;
 
 /**
- * My little wrapper around Kaggle's REST API (https://www.kaggle.com/api/v1).
- *
- * Kaggle doesn't ship an official Java SDK so I just hit the endpoints
- * directly. I only exposed the two things my app actually uses: searching
- * for datasets, and grabbing a single file out of one. Everything else I
- * can add later if I need it.
- *
- * The responses come back as raw JSON strings. I didn't want to bake a
- * specific shape into this class, so the bit of code that actually knows
- * what it wants (ExerciseRepository, in our case) does the parsing.
- *
- * Auth is HTTP Basic — username:key base64-encoded. I set the HttpClient
- * to follow redirects automatically because dataset downloads 302 over to
- * storage.googleapis.com and I don't want to babysit that dance.
+ * Thin Kaggle REST API client (https://www.kaggle.com/api/v1).
+ * HTTP Basic auth, follows 302 redirects to googleapis storage. Returns raw JSON
+ * for callers to parse.
  */
 public final class KaggleClient {
 
@@ -48,12 +37,7 @@ public final class KaggleClient {
 
     // ── search ────────────────────────────────────────────────────────────────
 
-    /**
-     * Fires a search at /datasets/list?search=... and hands back the raw
-     * JSON body. If anything goes wrong I wrap it in a KaggleException with
-     * the HTTP status so the caller can decide whether to retry or just
-     * fall back to the hardcoded list.
-     */
+    /** GET /datasets/list?search={query}. Returns raw JSON body. */
     public String searchDatasets(String query) throws KaggleException {
         String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8);
         HttpRequest req = baseRequest(BASE + "/datasets/list?search=" + encoded)
@@ -72,19 +56,10 @@ public final class KaggleClient {
 
     // ── download ──────────────────────────────────────────────────────────────
 
-    /**
-     * Grabs one specific file from a dataset instead of the whole zip
-     * archive. I use this so I don't have to unzip a 20 MB bundle just to
-     * read one CSV. Kaggle 302s over to storage.googleapis.com and the
-     * HttpClient follows the redirect for me.
-     *
-     * @return the path I was handed (for chaining, nothing clever).
-     */
+    /** Downloads single file from dataset to target path. Returns target. */
     public Path downloadFile(String owner, String dataset, String fileName, Path target)
             throws KaggleException {
-        // I need to create the parent directory myself. If I don't,
-        // BodyHandlers.ofFile throws a NoSuchFileException that points at
-        // the *parent* and it's confusing to debug.
+        // Create parent dir; ofFile fails opaquely otherwise.
         try {
             Path parent = target.toAbsolutePath().getParent();
             if (parent != null) Files.createDirectories(parent);
@@ -99,10 +74,7 @@ public final class KaggleClient {
         HttpResponse<Path> res = send(req, HttpResponse.BodyHandlers.ofFile(target),
                 "download failed for " + owner + "/" + dataset + "/" + fileName);
         if (res.statusCode() != 200) {
-            // If the request failed I don't want a half-written file sitting
-            // around — next run would see it and skip the download. So I
-            // delete it. Best-effort; if the delete itself fails there's
-            // nothing sensible to do about it.
+            // Drop partial file so next run retries instead of skipping.
             try { Files.deleteIfExists(target); } catch (IOException ignored) { }
             throw new KaggleException(
                     "Kaggle download returned HTTP " + res.statusCode() +

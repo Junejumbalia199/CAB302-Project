@@ -11,22 +11,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Wraps the Kaggle megaGymDataset for the rest of the app. First time it's
- * called, I download data/exercises.csv from Kaggle. After that the file
- * stays on disk and I just read it straight back — no need to hit Kaggle
- * on every launch.
- *
- * I wrote my own CSV parser instead of pulling in OpenCSV. This dataset
- * only uses the basic quoted-field case (descriptions with commas wrapped
- * in double quotes) so the hand-rolled version is fine. If I ever swap
- * datasets and hit one with newlines inside quoted fields, I'll bring in
- * OpenCSV then — no point paying for it now.
+ * Disk-cached Kaggle megaGymDataset. Downloads on first call, then reads local copy.
+ * Hand-rolled CSV parser (handles quoted fields, no embedded newlines).
  */
 public final class ExerciseRepository {
 
-    // I pinned the exact dataset + filename on purpose. I'd rather find out
-    // loudly on the next run if the upstream owner renames something than
-    // silently start loading a different file.
     private static final String OWNER     = "niharika41298";
     private static final String DATASET   = "gym-exercise-data";
     private static final String FILE_NAME = "megaGymDataset.csv";
@@ -35,12 +24,7 @@ public final class ExerciseRepository {
 
     private List<ExerciseDataset> cache;
 
-    /**
-     * Makes sure the CSV is on disk and parsed into memory. I made this
-     * synchronized and idempotent so I can call it from the startup warmup
-     * thread and from any screen that needs the data without worrying
-     * about double-loading.
-     */
+    /** Downloads (if needed) and parses the CSV. Idempotent and thread-safe. */
     public synchronized List<ExerciseDataset> ensureLoaded() throws KaggleException {
         if (cache != null) return cache;
 
@@ -58,7 +42,7 @@ public final class ExerciseRepository {
         return cache;
     }
 
-    /** Whatever I've loaded so far. Empty list if ensureLoaded() hasn't run. */
+    /** Loaded rows, or empty list if ensureLoaded() hasn't run. */
     public List<ExerciseDataset> all() {
         return cache == null ? List.of() : cache;
     }
@@ -71,8 +55,7 @@ public final class ExerciseRepository {
             String headerLine = r.readLine();
             if (headerLine == null) return rows;
 
-            // Look up columns by name so I'm not relying on a specific order.
-            // If the upstream CSV ever reorders columns I'd rather keep working.
+            // Look up by header name to survive column reordering.
             List<String> headers = splitCsvRow(headerLine);
             int iTitle = headers.indexOf("Title");
             int iDesc  = headers.indexOf("Desc");
@@ -100,17 +83,13 @@ public final class ExerciseRepository {
         return rows;
     }
 
-    /** Small helper so I don't have to null-check every column lookup. */
+    /** Safe column lookup; returns "" when index is out of range. */
     private static String get(List<String> cols, int i) {
         if (i < 0 || i >= cols.size()) return "";
         return cols.get(i);
     }
 
-    /**
-     * My mini CSV splitter. Handles double-quoted fields (where a comma is
-     * part of the value, like a description). Doesn't handle newlines
-     * inside a quoted field — see the class comment.
-     */
+    /** Splits one CSV line. Handles "" escapes inside quoted fields. */
     private static List<String> splitCsvRow(String line) {
         List<String> out = new ArrayList<>();
         StringBuilder current = new StringBuilder();
@@ -119,8 +98,7 @@ public final class ExerciseRepository {
         for (int i = 0; i < line.length(); i++) {
             char c = line.charAt(i);
             if (c == '"') {
-                // Inside a quoted field, "" means a literal quote — emit one
-                // and skip the second.
+                // "" inside a quoted field = literal quote.
                 if (inQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
                     current.append('"');
                     i++;
