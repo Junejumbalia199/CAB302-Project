@@ -9,6 +9,7 @@ import com.formcoach.runexercise.runexercise;
 import com.formcoach.selection.ExerciseSelectionPage;
 import com.formcoach.videomodal.ExerciseVideoView;
 import com.formcoach.auth.DatabaseAuthService;
+import com.formcoach.historypage.HistoryPage;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -80,6 +81,10 @@ public final class Navigator {
         ).show();
     }
 
+    public void showHistory() {
+        new HistoryPage(stage).show();
+    }
+
     /** AI coach chat popup. */
     public void showChatbot() {
         chatbot.showChatbot(stage);
@@ -123,10 +128,10 @@ public final class Navigator {
             switch (text) {
                 case "Home"                 -> b.setOnAction(e -> showLanding());
                 case "Exercises"            -> b.setOnAction(e -> showSelection());
-                case "History"              -> b.setOnAction(e -> System.out.println("[nav] History not built yet"));
+                case "History"              -> b.setOnAction(e -> showHistory());
                 case "Profile"              -> b.setOnAction(e -> showProfile());
                 case "Browse Exercises  →"  -> b.setOnAction(e -> showSelection());
-                case "View Progress"        -> b.setOnAction(e -> System.out.println("[nav] Progress not built yet"));
+                case "View Progress"        -> b.setOnAction(e -> showHistory());
                 case "💬"                   -> b.setOnAction(e -> showChatbot());
                 default -> { /* leave unrecognised buttons alone */ }
             }
