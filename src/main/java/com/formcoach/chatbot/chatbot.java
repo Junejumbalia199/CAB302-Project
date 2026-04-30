@@ -22,8 +22,22 @@ import org.json.JSONArray;
 
 public class chatbot {
 
-    private static final Dotenv dotenv = Dotenv.load();
-    private static final String API_KEY = (dotenv.get("API_KEY") != null) ? dotenv.get("API_KEY").trim() : "";
+    private static final Dotenv dotenv;
+    static {
+        Dotenv temp;
+        try {
+            temp = Dotenv.configure()
+                    .ignoreIfMissing()
+                    .load();
+        } catch (Exception e) {
+            temp = null;
+        }
+        dotenv = temp;
+    }
+    private static final String API_KEY =
+            (dotenv != null && dotenv.get("API_KEY") != null)
+                    ? dotenv.get("API_KEY").trim()
+                    : "";
     private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
 
     private static Popup chatPopup;
