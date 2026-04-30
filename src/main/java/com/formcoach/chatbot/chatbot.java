@@ -38,7 +38,8 @@ public class chatbot {
             (dotenv != null && dotenv.get("API_KEY") != null)
                     ? dotenv.get("API_KEY").trim()
                     : "";
-    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
+    private static final String GEMINI_URL =
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
 
     private static Popup chatPopup;
     private static VBox messageContainer;
@@ -173,9 +174,13 @@ public class chatbot {
 
     private static String getGeminiResponse(String userMessage) {
         try {
-            if (API_KEY.isEmpty()) return "Error: No API Key found in .env";
+            if (API_KEY.isEmpty()) {
+                System.err.println("DEBUG: No API key found in .env file");
+                return "Error: No API Key found in .env file. Please add your Gemini API key to the .env file.";
+            }
 
-            System.out.println("DEBUG: Requesting URL (key hidden): " + GEMINI_URL.replace(API_KEY, "ACTUAL_KEY"));
+            System.out.println("DEBUG: API Key loaded (length: " + API_KEY.length() + ", starts with: " + (API_KEY.length() > 4 ? API_KEY.substring(0, 4) + "..." : API_KEY));
+            System.out.println("DEBUG: Requesting URL: " + GEMINI_URL.replace(API_KEY, "[API_KEY_HIDDEN]"));
 
             HttpClient client = HttpClient.newHttpClient();
 
@@ -183,9 +188,9 @@ public class chatbot {
             JSONObject textPart = new JSONObject();
             textPart.put("text", "You are 'Coach', an expert fitness and exercise professional. " +
                     "Your goal is to provide safe, actionable, and encouraging advice on workout form, " +
-                    "routines, and physical health. If a user asks something dangerous, advise them to consult a professional. " +
+                    "routines, and physical health to a user. If the user asks something dangerous, advise them to consult a professional. " +
                     "If the user asks something unrelated to fitness, inform them that you cannot help them with that. " +
-                    "Keep responses concise and use fitness emojis. " +
+                    "Keep responses concise, avoid overusing emojis, and dont use any font formatting tricks like asterisks around words. " +
                     "\n\nUser Question: " + userMessage);
 
             JSONArray partsArray = new JSONArray();
@@ -208,6 +213,8 @@ public class chatbot {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
+            System.out.println("DEBUG: Response status: " + response.statusCode());
+
             if (response.statusCode() == 200) {
                 JSONObject responseJson = new JSONObject(response.body());
                 return responseJson.getJSONArray("candidates")
@@ -218,11 +225,17 @@ public class chatbot {
                         .getString("text");
             } else {
                 System.err.println("API Error Response: " + response.body());
-                return "Coach is currently offline (Status " + response.statusCode() + ")";
+                if (response.statusCode() == 404) {
+                    return "API Error: Invalid API key or model not found. Please check your Gemini API key in the .env file.";
+                } else if (response.statusCode() == 400) {
+                    return "API Error: Bad request. Please check your API key format.";
+                } else {
+                    return "Coach is currently offline (Status " + response.statusCode() + ")";
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return "Connection Error: " + e.getMessage();
+            return "Connection Error: " + e.getMessage() + ". Please check your internet connection and API key.";
         }
     }
 }
