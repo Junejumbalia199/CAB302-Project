@@ -21,4 +21,3 @@ public final class AuthSession {
     public static void clear() {
         currentUser = null;
     }
-}
