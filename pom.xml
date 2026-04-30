@@ -73,7 +73,6 @@
             <classifier>${javafx.platform}</classifier>
         </dependency>
 
-        <!-- JUnit -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -108,7 +107,6 @@
             <version>0.3.12</version>
         </dependency>
 
-        <!-- Headless JavaFX -->
         <dependency>
             <groupId>org.testfx</groupId>
             <artifactId>openjfx-monocle</artifactId>
@@ -121,7 +119,6 @@
         <testSourceDirectory>src/main/test</testSourceDirectory>
 
         <plugins>
-            <!-- JavaFX plugin -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -131,19 +128,12 @@
                 </configuration>
             </plugin>
 
-            <!-- Headless test fix -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
-                    <argLine>
-                        -Djavafx.platform=Monocle
-                        -Dglass.platform=Monocle
-                        -Dmonocle.platform=Headless
-                        -Dprism.order=sw
-                        -Djava.awt.headless=true
-                    </argLine>
+                    <argLine>-Djavafx.platform=Monocle -Dglass.platform=Monocle -Dmonocle.platform=Headless -Dprism.order=sw -Djava.awt.headless=true --add-opens javafx.graphics/com.sun.glass.ui=ALL-UNNAMED --add-opens javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED</argLine>
                 </configuration>
             </plugin>
         </plugins>
