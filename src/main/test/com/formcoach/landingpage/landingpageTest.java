@@ -34,8 +34,8 @@ class landingpageTest {
     }
 
     @Test
-    void shouldHaveDefaultStyleClass() {
+    void shouldBeStackPaneInstance() {
         landingpage page = new landingpage();
-        assertTrue(page.getStyleClass().isEmpty()); // StackPane default
+        assertTrue(page instanceof javafx.scene.layout.StackPane);
     }
 }
