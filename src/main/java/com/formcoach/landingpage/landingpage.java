@@ -24,6 +24,7 @@ public class landingpage extends StackPane {
         HBox navBar = new HBox(40);
         navBar.getStyleClass().add("nav-bar");
 
+        // test comment
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/FClogo.png"));
         ImageView logoIcon = new ImageView(logoImage);
         logoIcon.setFitHeight(36);
