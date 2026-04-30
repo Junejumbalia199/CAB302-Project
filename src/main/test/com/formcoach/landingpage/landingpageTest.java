@@ -8,15 +8,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class landingpageTest {
 
-    @BeforeAll
-    static void initJavaFX() {
-        try {
-            Platform.startup(() -> {});
-        } catch (IllegalStateException e) {
-            // JavaFX already started
-        }
-    }
-
     @Test
     void shouldCreateLandingPageInstance() {
         landingpage page = new landingpage();
