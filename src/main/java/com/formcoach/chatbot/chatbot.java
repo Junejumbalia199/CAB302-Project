@@ -34,12 +34,15 @@ public class chatbot {
         }
         dotenv = temp;
     }
-    private static final String API_KEY =
+    // Made non-final to allow testing via reflection
+    private static String API_KEY =
             (dotenv != null && dotenv.get("API_KEY") != null)
                     ? dotenv.get("API_KEY").trim()
                     : "";
-    private static final String GEMINI_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+
+    private static String getGeminiUrl() {
+        return "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+    }
 
     private static Popup chatPopup;
     private static VBox messageContainer;
@@ -180,7 +183,7 @@ public class chatbot {
             }
 
             System.out.println("DEBUG: API Key loaded (length: " + API_KEY.length() + ", starts with: " + (API_KEY.length() > 4 ? API_KEY.substring(0, 4) + "..." : API_KEY));
-            System.out.println("DEBUG: Requesting URL: " + GEMINI_URL.replace(API_KEY, "[API_KEY_HIDDEN]"));
+            System.out.println("DEBUG: Requesting URL: " + getGeminiUrl().replace(API_KEY, "[API_KEY_HIDDEN]"));
 
             HttpClient client = HttpClient.newHttpClient();
 
@@ -206,7 +209,7 @@ public class chatbot {
             root.put("contents", contentsArray);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(GEMINI_URL))
+                    .uri(URI.create(getGeminiUrl()))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(root.toString()))
                     .build();
