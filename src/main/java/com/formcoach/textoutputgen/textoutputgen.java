@@ -60,9 +60,9 @@ public class textoutputgen {
         ParseResult zRes = parseCoordinatesToString(userPoseZ, idealPoseZ, tols, 'z');
 
         // combine results
-        result.append(xRes.text)
-                .append(yRes.text)
-                .append(zRes.text);
+        result.append(xRes.text);
+        result.append(yRes.text);
+        result.append(zRes.text);
 
         // determine worst tolerance across all axes
         worstTol = Math.min(xRes.worstTol, Math.min(yRes.worstTol, zRes.worstTol));
@@ -102,7 +102,19 @@ public class textoutputgen {
             if (skipIndex[i]) continue;
 
             double diff = userPose[i] - idealPose[i];
-            String direction = diff > 0 ? "up" : "down";
+            String direction = "";
+            switch (axis) {
+                case 'x':
+                    direction = diff > 0 ? "left" : "right";
+                    break;
+                case 'y':
+                    direction = diff > 0 ? "up" : "down";
+                    break;
+                case 'z':
+                    direction = diff > 0 ? "forward" : "backward";
+                    break;
+            }
+
 
             int tl = toleranceLevel(diff, tols);
 
