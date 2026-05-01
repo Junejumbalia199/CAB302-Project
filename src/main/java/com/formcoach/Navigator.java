@@ -65,7 +65,8 @@ public final class Navigator {
         ExerciseSelectionPage page = new ExerciseSelectionPage(
                 stage,
                 this::showLanding,
-                this::showProfile
+                this::showProfile,
+                this::showHistory
         );
         page.show();
         wireSelectionScene(stage.getScene());
@@ -158,7 +159,7 @@ public final class Navigator {
             String text = b.getText() == null ? "" : b.getText().trim();
             switch (text) {
                 case "Profile"  -> b.setOnAction(e -> showProfile());
-                case "History"  -> b.setOnAction(e -> System.out.println("[nav] History not built yet"));
+                case "History"  -> b.setOnAction(e -> showHistory());
                 // Home is already wired via onBack.
                 // Exercises is the current page; leave it.
                 default -> { /* pass */ }
