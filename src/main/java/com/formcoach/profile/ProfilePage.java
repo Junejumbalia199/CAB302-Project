@@ -21,12 +21,14 @@ public class ProfilePage {
     private final Runnable onHome;
     private final Runnable onExercises;
     private final Runnable onLogout;
+    private final Runnable onHistory;
 
-    public ProfilePage(Stage stage, Runnable onHome, Runnable onExercises, Runnable onLogout) {
+    public ProfilePage(Stage stage, Runnable onHome, Runnable onExercises, Runnable onLogout, Runnable onHistory) {
         this.stage = stage;
         this.onHome = onHome;
         this.onExercises = onExercises;
         this.onLogout = onLogout;
+        this.onHistory = onHistory;
     }
 
     public void show() {
@@ -131,7 +133,9 @@ public class ProfilePage {
 
         Button btnHome = createNavButton("Home", false, onHome);
         Button btnExercises = createNavButton("Exercises", false, onExercises);
-        Button btnHistory = createNavButton("History", false, () -> System.out.println("History clicked"));
+        Button btnHistory = createNavButton("History", false, () -> {
+            if (onHistory != null) onHistory.run();
+        });
         Button btnProfile = createNavButton("Profile", true, null);
 
         navBar.getChildren().addAll(logo, spacer, btnHome, btnExercises, btnHistory, btnProfile);

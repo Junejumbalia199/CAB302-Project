@@ -78,7 +78,8 @@ public final class Navigator {
                 stage,
                 this::showLanding,
                 this::showSelection,
-                this::showAuth
+                this::showAuth,
+                this::showHistory
         ).show();
     }
 
