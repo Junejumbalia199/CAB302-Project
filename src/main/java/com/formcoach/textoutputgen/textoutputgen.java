@@ -102,18 +102,12 @@ public class textoutputgen {
             if (skipIndex[i]) continue;
 
             double diff = userPose[i] - idealPose[i];
-            String direction = "";
-            switch (axis) {
-                case 'x':
-                    direction = diff > 0 ? "left" : "right";
-                    break;
-                case 'y':
-                    direction = diff > 0 ? "up" : "down";
-                    break;
-                case 'z':
-                    direction = diff > 0 ? "forward" : "backward";
-                    break;
-            }
+            String direction = switch (axis) {
+                case 'x' -> diff > 0 ? "left" : "right";
+                case 'y' -> diff > 0 ? "up" : "down";
+                case 'z' -> diff > 0 ? "forward" : "backward";
+                default -> "";
+            };
 
 
             int tl = toleranceLevel(diff, tols);
