@@ -25,6 +25,7 @@ public class ExerciseSelectionPage {
     private final Stage stage;
     private final Runnable onBack;
     private final Runnable onProfile;
+    private final Runnable onHistory;
 
     private final List<ExerciseItem> allExercises = List.of(
             new ExerciseItem(
@@ -74,10 +75,11 @@ public class ExerciseSelectionPage {
 
     private int currentPageIndex = 0;
 
-    public ExerciseSelectionPage(Stage stage, Runnable onBack, Runnable onProfile) {
+    public ExerciseSelectionPage(Stage stage, Runnable onBack, Runnable onProfile, Runnable onHistory) {
         this.stage = stage;
         this.onBack = onBack;
         this.onProfile = onProfile;
+        this.onHistory = onHistory;
     }
 
     public void show() {
@@ -159,7 +161,12 @@ public class ExerciseSelectionPage {
         });
 
         Button btnExercises = createNavButton("Exercises", true, null);
-        Button btnHistory = createNavButton("History", false, () -> System.out.println("History clicked"));
+        Button btnHistory = createNavButton("History", false, () -> {
+            if (onHistory != null) {
+                onHistory.run();
+            }
+        });
+
         Button btnProfile = createNavButton("Profile", false, () -> {
             if (onProfile != null) {
                 onProfile.run();
