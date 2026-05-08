@@ -3,7 +3,6 @@ package com.formcoach.textoutputgen;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import com.formcoach.textoutputgen.PoseValidationException;
 
 public class textoutputgen {
 
@@ -13,6 +12,28 @@ public class textoutputgen {
 
     private static final int LEFT_SHOULDER = 11;
     private static final int RIGHT_SHOULDER = 12;
+    private static final double[] JOINT_WEIGHTS = new double[33];
+
+    static {
+
+        // default weight
+        Arrays.fill(JOINT_WEIGHTS, 0.5);
+
+        // high importance joints
+        JOINT_WEIGHTS[11] = 2.0; // left shoulder
+        JOINT_WEIGHTS[12] = 2.0; // right shoulder
+        JOINT_WEIGHTS[23] = 2.0; // left hip
+        JOINT_WEIGHTS[24] = 2.0; // right hip
+        JOINT_WEIGHTS[25] = 2.5; // left knee
+        JOINT_WEIGHTS[26] = 2.5; // right knee
+        JOINT_WEIGHTS[13] = 1.8; // left elbow
+        JOINT_WEIGHTS[14] = 1.8; // right elbow
+
+        // medium importance
+        JOINT_WEIGHTS[15] = 1.2;
+        JOINT_WEIGHTS[16] = 1.2;
+    }
+
     private final Boolean[] skipIndex = new Boolean[]{true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, true, true, true, true, true, true, false, false, false, false, false, false, false, false, true, true};
     private final Double[] pushupTols = new Double[]{0.35, 0.15, 0.05, 0.0};
     private final Double[] situpTols = new Double[]{0.35, 0.15, 0.05, 0.0};
@@ -26,7 +47,7 @@ public class textoutputgen {
     public String[] FlavourText = new String[]{"Good job!", "Keep it up!", "Great work!", "Keep on improving!", "Don't give up!"};
 
     // =========================================================
-    // PUBLIC API
+    // The main output method to get the results
     // =========================================================
 
     public PoseResult output(Double[] userX, Double[] userY, Double[] userZ, Double[] idealX, Double[] idealY, Double[] idealZ, String exerciseType) {
@@ -50,20 +71,19 @@ public class textoutputgen {
         Double[] iy = normalize(idealX, idealY, idealY);
         Double[] iz = normalizeZ(idealZ, idealX, idealY);
 
-        int worstTol = 3;
+        ParseStats xStats = parse(ux, ix, tols, 'x', movementMap);
+        ParseStats yStats = parse(uy, iy, tols, 'y', movementMap);
+        ParseStats zStats = parse(uz, iz, tols, 'z', movementMap);
 
-        worstTol = Math.min(parse(ux, ix, tols, 'x', movementMap), Math.min(parse(uy, iy, tols, 'y', movementMap), parse(uz, iz, tols, 'z', movementMap)));
+        int worstTol = Math.min(xStats.worstTol, Math.min(yStats.worstTol, zStats.worstTol));
 
-        // =====================================================
-        // SCORE FIX (IMPORTANT)
-        // =====================================================
+        double averageScore = (xStats.average() + yStats.average() + zStats.average()) / 3.0;
 
-        double score = switch (worstTol) {
-            case 0 -> 0;
-            case 1 -> 3;
-            case 2 -> 6;
-            default -> 10;
-        };
+        double score = Math.pow(averageScore, 1.35) * 10.0;
+
+        score = Math.max(0.0, Math.min(10.0, score));
+        score = Math.round(score * 10.0) / 10.0;
+        score = Math.round(score * 10.0) / 10.0;
 
         List<String> movementOutput = new ArrayList<>();
 
@@ -98,7 +118,7 @@ public class textoutputgen {
     }
 
     // =========================================================
-    // VALIDATION (FIXED FOR TESTS)
+    // Validation stuff to throw the custom exceptions
     // =========================================================
 
     private void validate(Double[]... arrays) {
@@ -119,12 +139,12 @@ public class textoutputgen {
     }
 
     // =========================================================
-    // CORE LOGIC
+    // Core logic
     // =========================================================
 
-    private int parse(Double[] user, Double[] ideal, Double[] tols, char axis, Map<String, MovementInfo> map) {
+    private ParseStats parse(Double[] user, Double[] ideal, Double[] tols, char axis, Map<String, MovementInfo> map) {
 
-        int worst = 3;
+        ParseStats stats = new ParseStats();
 
         for (int i = 0; i < user.length; i++) {
 
@@ -140,18 +160,22 @@ public class textoutputgen {
             };
 
             int tl = tolerance(diff, tols);
-            worst = Math.min(worst, tl);
+
+            stats.add(tl, JOINT_WEIGHTS[i]);
 
             String part = normalize(poseLandmarkNames[i]);
 
             map.putIfAbsent(part, new MovementInfo());
             MovementInfo info = map.get(part);
 
-            info.directions.add(dir);
+            if (tl < 3) {
+                info.directions.add(dir);
+            }
+
             info.worstTol = Math.min(info.worstTol, tl);
         }
 
-        return worst;
+        return stats;
     }
 
     private String normalize(String name) {
@@ -162,16 +186,19 @@ public class textoutputgen {
 
     private int tolerance(double diff, Double[] t) {
 
+        final double EPS = 1e-9;
+
         double a = Math.abs(diff);
 
-        if (a > t[0]) return 0;
-        if (a > t[1]) return 1;
-        if (a > t[2]) return 2;
+        if (a - t[0] > EPS) return 0;
+        if (a - t[1] > EPS) return 1;
+        if (a - t[2] > EPS) return 2;
+
         return 3;
     }
 
     // =========================================================
-    // NORMALISATION (UNCHANGED)
+    // Normalisation
     // =========================================================
 
     private Double[] normalize(Double[] x, Double[] y, Double[] target) {
@@ -213,7 +240,40 @@ public class textoutputgen {
     }
 
     // =========================================================
-    // DATA STRUCTURES
+    // Print out pose result object in correct format
+    // =========================================================
+
+    public void printPoseResult(PoseResult result) {
+
+        if (result == null) {
+            System.out.println("PoseResult is null.");
+            return;
+        }
+
+        System.out.println(result.summaryText());
+
+        if (result.movementFeedback() == null || result.movementFeedback().isEmpty()) {
+            System.out.println("- No feedback needed!");
+        } else {
+            for (String feedback : result.movementFeedback()) {
+                System.out.println("- " + feedback);
+            }
+        }
+
+        System.out.println("Score: " + result.score());
+        System.out.println("Severity: " + result.severity());
+
+        String flavour = result.flavourText();
+
+        if (flavour == null || flavour.isBlank()) {
+            flavour = "";
+        }
+
+        System.out.println(flavour);
+    }
+
+    // =========================================================
+    // Data structures
     // =========================================================
 
     static class MovementInfo {
@@ -224,5 +284,30 @@ public class textoutputgen {
     public record PoseResult(String summaryText, List<String> movementFeedback, double score, int severity,
                              String flavourText, boolean valid) {
 
+    }
+
+    static class ParseStats {
+        double weightedSum = 0;
+        double weightTotal = 0;
+        int worstTol = 3;
+
+        void add(int tol, double weight) {
+
+            worstTol = Math.min(worstTol, tol);
+
+            double score = switch (tol) {
+                case 3 -> 1.0;
+                case 2 -> 0.7;
+                case 1 -> 0.3;
+                default -> 0.0;
+            };
+
+            weightedSum += score * weight;
+            weightTotal += weight;
+        }
+
+        double average() {
+            return weightTotal == 0 ? 1.0 : weightedSum / weightTotal;
+        }
     }
 }

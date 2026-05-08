@@ -3,6 +3,11 @@ package com.formcoach.textoutputgen;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,11 +77,12 @@ class textoutputTest {
     }
 
     private textoutputgen.PoseResult run(Double[] x, Double[] y, Double[] z, String type) {
-        return generator.output(x, y, z, x, y, z, type);
+
+        return generator.output(x, y, z, basePoseX(), basePoseY(), basePoseZ(), type);
     }
 
     // =========================================================
-    // EXCEPTION TESTS (UPDATED)
+    // EXCEPTION TESTS
     // =========================================================
 
     @Test
@@ -114,7 +120,7 @@ class textoutputTest {
     }
 
     // =========================================================
-    // CORE VALIDATION STILL VALID
+    // CORE VALIDATION
     // =========================================================
 
     @Test
@@ -124,7 +130,7 @@ class textoutputTest {
 
         assertEquals(generator.PerfectText, result.summaryText());
         assertEquals(3, result.severity());
-        assertTrue(result.score() >= 9.0);
+        assertEquals(10.0, result.score());
     }
 
     @Test
@@ -188,7 +194,7 @@ class textoutputTest {
         String combined = String.join(" ", result.movementFeedback());
 
         assertTrue(combined.contains("up"));
-        assertTrue(combined.contains("left"));
+        assertTrue(combined.contains("right"));
     }
 
     // =========================================================
@@ -206,12 +212,276 @@ class textoutputTest {
     }
 
     @Test
-    void testFlavourEnabled() {
+    void testFlavourTextFromList() {
 
         generator.disableFlavourText = false;
 
         var result = run(basePoseX(), basePoseY(), basePoseZ(), "Pushup");
 
-        assertNotNull(result.flavourText());
+        assertTrue(Arrays.asList(generator.FlavourText).contains(result.flavourText()));
+    }
+
+    // =========================================================
+    // PRINT TESTS
+    // =========================================================
+
+    @Test
+    void testPrintPoseResult() {
+
+        var result = run(basePoseX(), basePoseY(), basePoseZ(), "Pushup");
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        PrintStream originalOut = System.out;
+
+        // Create a stream that writes to both console and capture stream
+        PrintStream teeStream = new PrintStream(new OutputStream() {
+            @Override
+            public void write(int b) throws IOException {
+                originalOut.write(b);      // print to console
+                outputStream.write(b);     // capture for assertions
+            }
+        });
+
+        System.setOut(teeStream);
+
+        try {
+            generator.printPoseResult(result);
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        String printed = outputStream.toString();
+
+        assertTrue(printed.contains(result.summaryText()));
+        assertTrue(printed.contains("Score"));
+        assertTrue(printed.contains(String.valueOf(result.score())));
+        assertTrue(printed.contains("Severity"));
+        assertTrue(printed.contains(String.valueOf(result.severity())));
+    }
+
+    @Test
+    void testInfiniteInput() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        x[15] = Double.POSITIVE_INFINITY;
+
+        PoseValidationException ex = assertThrows(PoseValidationException.class, () -> generator.output(x, y, z, basePoseX(), basePoseY(), basePoseZ(), "Pushup"));
+
+        assertEquals("INVALID_VALUE", ex.getErrorCode());
+    }
+
+    @Test
+    void testPerfectPoseHasNoFeedback() {
+
+        var result = run(basePoseX(), basePoseY(), basePoseZ(), "Pushup");
+
+        assertTrue(result.movementFeedback().isEmpty());
+    }
+
+    @Test
+    void testToleranceBoundaryGood() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        y[13] += 0.05;
+
+        var result = run(x, y, z, "Pushup");
+
+        assertEquals(3, result.severity());
+    }
+
+    @Test
+    void testToleranceBoundarySlightAdjustment() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        y[13] += 0.051;
+
+        var result = run(x, y, z, "Pushup");
+
+        assertEquals(2, result.severity());
+    }
+
+    @Test
+    void testMultipleBodyPartsFeedback() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        y[13] += 0.2;
+        y[25] -= 0.2;
+
+        var result = run(x, y, z, "Pushup");
+
+        String feedback = String.join(" ", result.movementFeedback());
+
+        assertTrue(feedback.contains("elbow"));
+        assertTrue(feedback.contains("knee"));
+    }
+
+    @Test
+    void testSkippedLandmarksIgnored() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        y[0] += 10.0;
+
+        var result = run(x, y, z, "Pushup");
+
+        assertEquals(3, result.severity());
+        assertTrue(result.movementFeedback().isEmpty());
+    }
+
+    @Test
+    void testForwardBackwardFeedback() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        z[13] += 0.2;
+
+        var result = run(x, y, z, "Pushup");
+
+        String feedback = String.join(" ", result.movementFeedback());
+
+        assertTrue(feedback.contains("forward"));
+    }
+
+    @Test
+    void testZeroShoulderWidthDoesNotCrash() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        x[11] = 0.0;
+        x[12] = 0.0;
+
+        assertDoesNotThrow(() -> run(x, y, z, "Pushup"));
+    }
+
+    @Test
+    void testSitupAccepted() {
+
+        var result = run(basePoseX(), basePoseY(), basePoseZ(), "Situp");
+
+        assertNotNull(result);
+    }
+
+    // =========================================================
+    // SCORE TESTS
+    // =========================================================
+
+    @Test
+    void testSingleMinorErrorReducesScoreSlightly() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        // small tolerance drop
+        y[13] += 0.051;
+
+        var result = run(x, y, z, "Pushup");
+
+        assertTrue(result.score() < 10.0);
+        assertTrue(result.score() > 9.0);
+    }
+
+    @Test
+    void testLargeErrorReducesScoreMore() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        y[13] += 0.20;
+
+        var result = run(x, y, z, "Pushup");
+
+        assertTrue(result.score() < 9.8);
+    }
+
+    @Test
+    void testMultipleErrorsReduceScoreFurther() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        y[13] += 0.20;
+        y[25] -= 0.20;
+        z[15] += 0.20;
+
+        var result = run(x, y, z, "Pushup");
+
+        assertTrue(result.score() < 9.5);
+    }
+
+    @Test
+    void testVeryBadPoseProducesLowScore() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        x[13] += 1.0;
+        y[13] += 1.0;
+        z[13] += 1.0;
+
+        x[14] += 1.0;
+        y[14] += 1.0;
+        z[14] += 1.0;
+
+        var result = run(x, y, z, "Pushup");
+
+        assertTrue(result.score() < 8.0);
+    }
+
+    @Test
+    void testSkippedLandmarksDoNotAffectScore() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        // nose is skipped
+        y[0] += 999.0;
+
+        var result = run(x, y, z, "Pushup");
+
+        assertEquals(10.0, result.score());
+    }
+
+    @Test
+    void testExactAverageScoreCalculation() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        // One landmark becomes tolerance level 2
+        y[13] += 0.051;
+
+        var result = run(x, y, z, "Pushup");
+
+        int totalCoordinates = 66; // 22 landmarks * 3 axes
+        double expectedAverage = ((65 * 3.0) + 2.0) / totalCoordinates;
+
+        double expectedScore = Math.round((expectedAverage / 3.0) * 10.0 * 10.0) / 10.0;
+
+        assertEquals(expectedScore, result.score());
     }
 }
