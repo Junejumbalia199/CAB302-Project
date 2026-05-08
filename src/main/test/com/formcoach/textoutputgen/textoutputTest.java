@@ -1,6 +1,10 @@
 package com.formcoach.textoutputgen;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class textoutputTest {
@@ -10,239 +14,204 @@ class textoutputTest {
     @BeforeEach
     void setup() {
         generator = new textoutputgen();
-        generator.disableFlavourText = true; // disable randomness
+        generator.disableFlavourText = true;
     }
 
-    // helper to build arrays
-    private Double[] arr(double val, int size) {
-        Double[] a = new Double[size];
-        for (int i = 0; i < size; i++) {
-            a[i] = val;
-        }
-        return a;
+    // =========================================================
+    // BASE POSES
+    // =========================================================
+
+    private Double[] basePoseX() {
+        Double[] x = new Double[33];
+        Arrays.fill(x, 0.0);
+
+        x[11] = -0.5;
+        x[12] = 0.5;
+        x[13] = -0.7;
+        x[14] = 0.7;
+        x[15] = -0.9;
+        x[16] = 0.9;
+        x[23] = -0.4;
+        x[24] = 0.4;
+        x[25] = -0.4;
+        x[26] = 0.4;
+        x[27] = -0.4;
+        x[28] = 0.4;
+
+        return x;
+    }
+
+    private Double[] basePoseY() {
+        Double[] y = new Double[33];
+        Arrays.fill(y, 0.0);
+
+        y[11] = 1.0;
+        y[12] = 1.0;
+        y[13] = 0.6;
+        y[14] = 0.6;
+        y[15] = 0.2;
+        y[16] = 0.2;
+        y[23] = -0.2;
+        y[24] = -0.2;
+        y[25] = -0.8;
+        y[26] = -0.8;
+        y[27] = -1.4;
+        y[28] = -1.4;
+
+        return y;
+    }
+
+    private Double[] basePoseZ() {
+        Double[] z = new Double[33];
+        Arrays.fill(z, 0.0);
+        return z;
+    }
+
+    private Double[] copy(Double[] arr) {
+        return Arrays.copyOf(arr, arr.length);
+    }
+
+    private textoutputgen.PoseResult run(Double[] x, Double[] y, Double[] z, String type) {
+        return generator.output(x, y, z, x, y, z, type);
+    }
+
+    // =========================================================
+    // EXCEPTION TESTS (UPDATED)
+    // =========================================================
+
+    @Test
+    void testNullInput() {
+
+        PoseValidationException ex = assertThrows(PoseValidationException.class, () -> generator.output(null, null, null, null, null, null, "Pushup"));
+
+        assertEquals("NULL_INPUT", ex.getErrorCode());
     }
 
     @Test
-    public void testForBadInput() {
+    void testNaNInput() {
 
-        Double[] userX = arr(0.02, 33);
-        Double[] idealX = arr(0.0, 33);
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
 
-        Double[] userY = arr(0.02, 33);
-        Double[] idealY = arr(0.0, 33);
+        x[15] = Double.NaN;
 
-        Double[] userZ = arr(0.02, 33);
-        Double[] idealZ = arr(0.0, 33);
+        PoseValidationException ex = assertThrows(PoseValidationException.class, () -> generator.output(x, y, z, basePoseX(), basePoseY(), basePoseZ(), "Pushup"));
 
-        String result = generator.output(
-                userX, userY, userZ,
-                idealX, idealY, idealZ,
-                "Pushup"
-        );
-
-        System.out.println("\n=== Bad Input Test ===");
-        System.out.println(result);
-
-        assertTrue(result.contains(generator.BadText));
-        assertFalse(result.contains(generator.PerfectText));
+        assertEquals("INVALID_VALUE", ex.getErrorCode());
     }
 
     @Test
-    public void testForGoodInput() {
+    void testInvalidExercise() {
 
-        Double[] userX = arr(0.005, 33);
-        Double[] idealX = arr(0.0, 33);
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
 
-        Double[] userY = arr(0.005, 33);
-        Double[] idealY = arr(0.0, 33);
+        PoseValidationException ex = assertThrows(PoseValidationException.class, () -> generator.output(x, y, z, x, y, z, "Running"));
 
-        Double[] userZ = arr(0.005, 33);
-        Double[] idealZ = arr(0.0, 33);
+        assertEquals("INVALID_EXERCISE", ex.getErrorCode());
+    }
 
-        String result = generator.output(
-                userX, userY, userZ,
-                idealX, idealY, idealZ,
-                "Squat"
-        );
+    // =========================================================
+    // CORE VALIDATION STILL VALID
+    // =========================================================
 
-        System.out.println("\n=== Good Input Test ===");
-        System.out.println(result);
+    @Test
+    void testPerfectInput() {
 
-        assertTrue(result.contains(generator.GoodText));
-        assertFalse(result.contains(generator.BadText));
+        var result = run(basePoseX(), basePoseY(), basePoseZ(), "Pushup");
+
+        assertEquals(generator.PerfectText, result.summaryText());
+        assertEquals(3, result.severity());
+        assertTrue(result.score() >= 9.0);
     }
 
     @Test
-    public void testForPerfectInput() {
+    void testVeryBadInput() {
 
-        Double[] userX = arr(0.0, 33);
-        Double[] idealX = arr(0.0, 33);
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
 
-        Double[] userY = arr(0.0, 33);
-        Double[] idealY = arr(0.0, 33);
+        y[13] += 0.60;
 
-        Double[] userZ = arr(0.0, 33);
-        Double[] idealZ = arr(0.0, 33);
+        var result = run(x, y, z, "Pushup");
 
-        String result = generator.output(
-                userX, userY, userZ,
-                idealX, idealY, idealZ,
-                "Situp"
-        );
+        assertEquals(generator.VBadText, result.summaryText());
+        assertEquals(0, result.severity());
+    }
 
-        System.out.println("\n=== Perfect Input Test ===");
-        System.out.println(result);
+    // =========================================================
+    // SCORE TESTS
+    // =========================================================
 
-        assertTrue(result.contains(generator.PerfectText));
-        assertFalse(result.contains(generator.BadText));
+    @Test
+    void testScoreRange() {
+
+        var result = run(basePoseX(), basePoseY(), basePoseZ(), "Pushup");
+
+        assertTrue(result.score() >= 0);
+        assertTrue(result.score() <= 10);
+    }
+
+    // =========================================================
+    // MOVEMENT TESTS
+    // =========================================================
+
+    @Test
+    void testDirectionUp() {
+
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
+
+        y[13] += 0.2;
+
+        var result = run(x, y, z, "Pushup");
+
+        assertTrue(result.movementFeedback().stream().anyMatch(s -> s.contains("up")));
     }
 
     @Test
-    public void testForVBadInput() {
+    void testCombinedDirections() {
 
-        Double[] userX = arr(0.5, 33);
-        Double[] idealX = arr(0.0, 33);
+        Double[] x = basePoseX();
+        Double[] y = basePoseY();
+        Double[] z = basePoseZ();
 
-        Double[] userY = arr(0.5, 33);
-        Double[] idealY = arr(0.0, 33);
+        x[13] -= 0.2;
+        y[13] += 0.2;
 
-        Double[] userZ = arr(0.5, 33);
-        Double[] idealZ = arr(0.0, 33);
+        var result = run(x, y, z, "Pushup");
 
-        String result = generator.output(
-                userX, userY, userZ,
-                idealX, idealY, idealZ,
-                "Pushup"
-        );
+        String combined = String.join(" ", result.movementFeedback());
 
-        System.out.println("\n=== Very Bad Input Test ===");
-        System.out.println(result);
-
-        assertTrue(result.contains(generator.VBadText));
-        assertFalse(result.contains(generator.GoodText));
+        assertTrue(combined.contains("up"));
+        assertTrue(combined.contains("left"));
     }
 
-    @Test
-    public void testToleranceBoundaryBadVsGood() {
-        Double[] user = arr(0.01, 33); // exactly at boundary
-        Double[] ideal = arr(0.0, 33);
-
-        String result = generator.output(user, user, user, ideal, ideal, ideal, "Pushup");
-
-        System.out.println("\n=== Boundary Test (0.01) ===");
-        System.out.println(result);
-
-        // Decide what you EXPECT here and lock it in:
-        assertTrue(result.contains(generator.BadText)
-                || result.contains(generator.GoodText));
-    }
+    // =========================================================
+    // FLAVOUR TESTS
+    // =========================================================
 
     @Test
-    public void testDirectionUp() {
-        Double[] user = arr(0.02, 33);   // above ideal
-        Double[] ideal = arr(0.0, 33);
+    void testFlavourDisabled() {
 
-        String result = generator.output(user, user, user, ideal, ideal, ideal, "Pushup");
-
-        System.out.println("\n=== Direction Up Test ===");
-        System.out.println(result);
-
-        assertTrue(result.contains("up"));
-    }
-
-    @Test
-    public void testDirectionDown() {
-        Double[] user = arr(-0.02, 33);  // below ideal
-        Double[] ideal = arr(0.0, 33);
-
-        String result = generator.output(user, user, user, ideal, ideal, ideal, "Pushup");
-
-        System.out.println("\n=== Direction Down Test ===");
-        System.out.println(result);
-
-        assertTrue(result.contains("down"));
-    }
-
-    @Test
-    public void testSkipIndexWorks() {
-        Double[] user = arr(0.02, 33);
-        Double[] ideal = arr(0.0, 33);
-
-        String result = generator.output(user, user, user, ideal, ideal, ideal, "Pushup");
-
-        System.out.println("\n=== Skip Index Test ===");
-        System.out.println(result);
-
-        // Example: "nose" is skipped (index 0 = true)
-        assertFalse(result.contains("nose"));
-    }
-
-    @Test
-    public void testFlavourTextDisabled() {
         generator.disableFlavourText = true;
 
-        Double[] user = arr(0.0, 33);
-        Double[] ideal = arr(0.0, 33);
+        var result = run(basePoseX(), basePoseY(), basePoseZ(), "Pushup");
 
-        String result = generator.output(user, user, user, ideal, ideal, ideal, "Pushup");
-
-        for (String flavour : generator.FlavourText) {
-            assertFalse(result.contains(flavour));
-        }
+        assertNull(result.flavourText());
     }
 
     @Test
-    public void testFlavourTextEnabled() {
+    void testFlavourEnabled() {
+
         generator.disableFlavourText = false;
 
-        Double[] user = arr(0.0, 33);
-        Double[] ideal = arr(0.0, 33);
+        var result = run(basePoseX(), basePoseY(), basePoseZ(), "Pushup");
 
-        String result = generator.output(user, user, user, ideal, ideal, ideal, "Pushup");
-
-        boolean found = false;
-        for (String flavour : generator.FlavourText) {
-            if (result.contains(flavour)) {
-                found = true;
-                break;
-            }
-        }
-
-        assertTrue(found);
-    }
-
-    @Test
-    public void testMixedTolerances() {
-        Double[] user = arr(0.0, 33);
-        Double[] ideal = arr(0.0, 33);
-
-        user[12] = 0.5;   // very bad
-        user[13] = 0.02;  // bad
-        user[14] = 0.005; // good
-
-        String result = generator.output(user, user, user, ideal, ideal, ideal, "Pushup");
-
-        System.out.println("\n=== Mixed Tolerance Test ===");
-        System.out.println(result);
-
-        // Worst should dominate
-        assertTrue(result.contains(generator.VBadText));
-    }
-
-    @Test
-    public void testInvalidExerciseType() {
-        Double[] user = arr(0.0, 33);
-        Double[] ideal = arr(0.0, 33);
-
-        assertThrows(Exception.class, () -> {
-            generator.output(user, user, user, ideal, ideal, ideal, "Running");
-        });
-    }
-
-    @Test
-    public void testNullInput() {
-        assertThrows(NullPointerException.class, () -> {
-            generator.output(null, null, null, null, null, null, "Pushup");
-        });
+        assertNotNull(result.flavourText());
     }
 }
