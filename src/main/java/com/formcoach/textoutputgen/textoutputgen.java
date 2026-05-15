@@ -1,143 +1,313 @@
 package com.formcoach.textoutputgen;
 
 import java.text.MessageFormat;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class textoutputgen {
-    // text output composite parts
-    public Boolean disableFlavourText;
-    private Boolean[] skipIndex = new Boolean[]{true,true,true,true,true,true,true,true,true,true,true,false,
-            false,false,false,false,false,true,true,true,true,true,true,false,false,false,false,false,
-            false,false,false,true,true};
+
+    // =========================================================
+    // CONFIG
+    // =========================================================
+
+    private static final int LEFT_SHOULDER = 11;
+    private static final int RIGHT_SHOULDER = 12;
+    private static final double[] JOINT_WEIGHTS = new double[33];
+
+    static {
+
+        // default weight
+        Arrays.fill(JOINT_WEIGHTS, 0.5);
+
+        // high importance joints
+        JOINT_WEIGHTS[11] = 2.0; // left shoulder
+        JOINT_WEIGHTS[12] = 2.0; // right shoulder
+        JOINT_WEIGHTS[23] = 2.0; // left hip
+        JOINT_WEIGHTS[24] = 2.0; // right hip
+        JOINT_WEIGHTS[25] = 2.5; // left knee
+        JOINT_WEIGHTS[26] = 2.5; // right knee
+        JOINT_WEIGHTS[13] = 1.8; // left elbow
+        JOINT_WEIGHTS[14] = 1.8; // right elbow
+
+        // medium importance
+        JOINT_WEIGHTS[15] = 1.2;
+        JOINT_WEIGHTS[16] = 1.2;
+    }
+
+    private final Boolean[] skipIndex = new Boolean[]{true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, true, true, true, true, true, true, false, false, false, false, false, false, false, false, true, true};
+    private final Double[] pushupTols = new Double[]{0.35, 0.15, 0.05, 0.0};
+    private final Double[] situpTols = new Double[]{0.35, 0.15, 0.05, 0.0};
+    private final Double[] squatTols = new Double[]{0.35, 0.15, 0.05, 0.0};
+    private final String[] poseLandmarkNames = new String[]{"nose", "left eye (inner)", "left eye", "left eye (outer)", "right eye (inner)", "right eye", "right eye (outer)", "left ear", "right ear", "mouth (left)", "mouth (right)", "left shoulder", "right shoulder", "left elbow", "right elbow", "left wrist", "right wrist", "left pinky", "right pinky", "left index", "right index", "left thumb", "right thumb", "left hip", "right hip", "left knee", "right knee", "left ankle", "right ankle", "left heel", "right heel", "left foot index", "right foot index"};
+    public Boolean disableFlavourText = true;
     public String VBadText = "WARNING. Stop immediately. You may injure yourself.";
     public String BadText = "Your form isn't quite right. Here's where you need to adjust.";
     public String GoodText = "Your form is pretty good, but you can adjust a bit.";
     public String PerfectText = "Your form is perfect!";
-    private String BadOutputFormat = "Move your {0} {1}.";
-    private String GoodOutputFormat = "Move your {0} {1} a little.";
-    public String[] FlavourText = new String[]
-            {"Good job!", "Keep it up!", "Great work!", "Keep on improving!", "Don't give up!"};
-    private Double[] pushupTols = new Double[]{0.1, 0.01, 0.001, 0.0001}; //define tols for vbad, bad, good, vgood
-    private Double[] situpTols = new Double[]{0.1, 0.01, 0.001, 0.0001};
-    private Double[] squatTols = new Double[]{0.1, 0.01, 0.001, 0.0001};
-    private String[] poseLandmarkNames = new String[]{"nose", "left eye (inner)", "left eye", "left eye (outer)",
-    "right eye (inner)", "right eye", "right eye (outer)", "left ear", "right ear", "mouth (left)", "mouth (right)",
-    "left shoulder", "right shoulder", "left elbow", "right elbow", "left wrist", "right wrist", "left pinky",
-    "right pinky", "left index", "right index", "left thumb", "right thumb", "left hip", "right hip",
-    "left knee", "right knee", "left ankle", "right ankle", "left heel", "right heel", "left foot index",
-            "right foot index"};
+    public String[] FlavourText = new String[]{"Good job!", "Keep it up!", "Great work!", "Keep on improving!", "Don't give up!"};
 
-    static class ParseResult {
-        String text;
-        int worstTol;
+    // =========================================================
+    // The main output method to get the results
+    // =========================================================
 
-        ParseResult(String text, int worstTol) {
-            this.text = text;
-            this.worstTol = worstTol;
-        }
-    }
+    public PoseResult output(Double[] userX, Double[] userY, Double[] userZ, Double[] idealX, Double[] idealY, Double[] idealZ, String exerciseType) {
 
-    // a method that takes the coordinate inputs converted to separate x, y, z and gets text outputs
-    public String output(Double[] userPoseX, Double[] idealPoseX,
-                         Double[] userPoseY, Double[] idealPoseY,
-                         Double[] userPoseZ, Double[] idealPoseZ,
-                         String exerciseType) { // will take two inputs, need to check type
-        int worstTol = 3; // start optimistic
-        StringBuilder result = new StringBuilder();
+        validate(userX, userY, userZ, idealX, idealY, idealZ);
 
-        Double[] tols = new Double[4];
-
-        tols = switch (exerciseType) {
+        Double[] tols = switch (exerciseType) {
             case "Pushup" -> pushupTols;
             case "Situp" -> situpTols;
             case "Squat" -> squatTols;
-            default -> tols;
+            default -> throw new PoseValidationException("INVALID_EXERCISE", "Exercise type not recognized");
         };
 
-        // run parsing for each axis
-        ParseResult xRes = parseCoordinatesToString(userPoseX, idealPoseX, tols, 'x');
-        ParseResult yRes = parseCoordinatesToString(userPoseY, idealPoseY, tols, 'y');
-        ParseResult zRes = parseCoordinatesToString(userPoseZ, idealPoseZ, tols, 'z');
+        Map<String, MovementInfo> movementMap = new LinkedHashMap<>();
 
-        // combine results
-        result.append(xRes.text)
-                .append(yRes.text)
-                .append(zRes.text);
+        Double[] ux = normalize(userX, userY, userX);
+        Double[] uy = normalize(userX, userY, userY);
+        Double[] uz = normalizeZ(userZ, userX, userY);
 
-        // determine worst tolerance across all axes
-        worstTol = Math.min(xRes.worstTol, Math.min(yRes.worstTol, zRes.worstTol));
+        Double[] ix = normalize(idealX, idealY, idealX);
+        Double[] iy = normalize(idealX, idealY, idealY);
+        Double[] iz = normalizeZ(idealZ, idealX, idealY);
 
-        // prepend summary text
-        switch (worstTol) {
-            case 0:
-                result.insert(0, VBadText + "\n");
-                break;
-            case 1:
-                result.insert(0, BadText + "\n");
-                break;
-            case 2:
-                result.insert(0, GoodText + "\n");
-                break;
-            case 3:
-                result.insert(0, PerfectText + "\n");
-                break;
+        ParseStats xStats = parse(ux, ix, tols, 'x', movementMap);
+        ParseStats yStats = parse(uy, iy, tols, 'y', movementMap);
+        ParseStats zStats = parse(uz, iz, tols, 'z', movementMap);
+
+        int worstTol = Math.min(xStats.worstTol, Math.min(yStats.worstTol, zStats.worstTol));
+
+        double averageScore = (xStats.average() + yStats.average() + zStats.average()) / 3.0;
+
+        double score = Math.pow(averageScore, 1.35) * 10.0;
+
+        score = Math.max(0.0, Math.min(10.0, score));
+        score = Math.round(score * 10.0) / 10.0;
+        score = Math.round(score * 10.0) / 10.0;
+
+        List<String> movementOutput = new ArrayList<>();
+
+        for (var e : movementMap.entrySet()) {
+
+            String part = e.getKey();
+            MovementInfo info = e.getValue();
+
+            String directions = String.join(" and ", info.directions);
+
+            if (info.worstTol <= 1) {
+                movementOutput.add(MessageFormat.format("Move your {0} {1}.", part, directions));
+            } else if (info.worstTol == 2) {
+                movementOutput.add(MessageFormat.format("Move your {0} {1} a little.", part, directions));
+            }
         }
 
-        if (disableFlavourText) {
-            return result.toString();
+        String summary = switch (worstTol) {
+            case 0 -> VBadText;
+            case 1 -> BadText;
+            case 2 -> GoodText;
+            default -> PerfectText;
+        };
+
+        String flavour = null;
+
+        if (!Boolean.TRUE.equals(disableFlavourText)) {
+            flavour = FlavourText[ThreadLocalRandom.current().nextInt(FlavourText.length)];
         }
 
-        int rand = ThreadLocalRandom.current().nextInt(FlavourText.length);
-
-        return result.append("\n").append(FlavourText[rand]).toString();
+        return new PoseResult(summary, movementOutput, score, worstTol, flavour, true);
     }
 
-    // take two arrays of coordinates and return the tolerances needed, skipping the specified
-    // number of indexes off the arrays
-    private ParseResult parseCoordinatesToString(Double[] userPose, Double[] idealPose, Double[] tols, char axis) {
-        StringBuilder result = new StringBuilder();
-        int worstTol = 3; // start at best, go downward
+    // =========================================================
+    // Validation stuff to throw the custom exceptions
+    // =========================================================
 
-        for (int i = 0; i < userPose.length; i++) {
+    private void validate(Double[]... arrays) {
+
+        for (Double[] arr : arrays) {
+
+            if (arr == null) {
+                throw new PoseValidationException("NULL_INPUT", "Null pose array");
+            }
+
+            for (Double v : arr) {
+
+                if (v == null || Double.isNaN(v) || Double.isInfinite(v)) {
+                    throw new PoseValidationException("INVALID_VALUE", "NaN detected in pose data");
+                }
+            }
+        }
+    }
+
+    // =========================================================
+    // Core logic
+    // =========================================================
+
+    private ParseStats parse(Double[] user, Double[] ideal, Double[] tols, char axis, Map<String, MovementInfo> map) {
+
+        ParseStats stats = new ParseStats();
+
+        for (int i = 0; i < user.length; i++) {
+
             if (skipIndex[i]) continue;
 
-            double diff = userPose[i] - idealPose[i];
-            String direction = diff > 0 ? "up" : "down";
+            double diff = user[i] - ideal[i];
 
-            int tl = toleranceLevel(diff, tols);
+            String dir = switch (axis) {
+                case 'x' -> diff > 0 ? "left" : "right";
+                case 'y' -> diff > 0 ? "up" : "down";
+                case 'z' -> diff > 0 ? "forward" : "backward";
+                default -> "";
+            };
 
-            // track worst (lowest number = worse)
-            if (tl < worstTol) {
-                worstTol = tl;
+            int tl = tolerance(diff, tols);
+
+            stats.add(tl, JOINT_WEIGHTS[i]);
+
+            String part = normalize(poseLandmarkNames[i]);
+
+            map.putIfAbsent(part, new MovementInfo());
+            MovementInfo info = map.get(part);
+
+            if (tl < 3) {
+                info.directions.add(dir);
             }
 
-            switch (tl) {
-                case 1:
-                    result.append(MessageFormat.format(BadOutputFormat, poseLandmarkNames[i], direction))
-                            .append("\n");
-                    break;
-                case 2:
-                    result.append(MessageFormat.format(GoodOutputFormat, poseLandmarkNames[i], direction))
-                            .append("\n");
-                    break;
+            info.worstTol = Math.min(info.worstTol, tl);
+        }
+
+        return stats;
+    }
+
+    private String normalize(String name) {
+        if (name.startsWith("left ")) return name.substring(5);
+        if (name.startsWith("right ")) return name.substring(6);
+        return name;
+    }
+
+    private int tolerance(double diff, Double[] t) {
+
+        final double EPS = 1e-9;
+
+        double a = Math.abs(diff);
+
+        if (a - t[0] > EPS) return 0;
+        if (a - t[1] > EPS) return 1;
+        if (a - t[2] > EPS) return 2;
+
+        return 3;
+    }
+
+    // =========================================================
+    // Normalisation
+    // =========================================================
+
+    private Double[] normalize(Double[] x, Double[] y, Double[] target) {
+
+        Double[] out = new Double[target.length];
+
+        double cx = (x[LEFT_SHOULDER] + x[RIGHT_SHOULDER]) / 2.0;
+        double cy = (y[LEFT_SHOULDER] + y[RIGHT_SHOULDER]) / 2.0;
+
+        double w = Math.sqrt(Math.pow(x[LEFT_SHOULDER] - x[RIGHT_SHOULDER], 2) + Math.pow(y[LEFT_SHOULDER] - y[RIGHT_SHOULDER], 2));
+
+        if (w < 1e-6) w = 1e-6;
+
+        for (int i = 0; i < target.length; i++) {
+
+            double v = (target == x) ? x[i] - cx : y[i] - cy;
+
+            out[i] = v / w;
+        }
+
+        return out;
+    }
+
+    private Double[] normalizeZ(Double[] z, Double[] x, Double[] y) {
+
+        Double[] out = new Double[z.length];
+
+        double w = Math.sqrt(Math.pow(x[LEFT_SHOULDER] - x[RIGHT_SHOULDER], 2) + Math.pow(y[LEFT_SHOULDER] - y[RIGHT_SHOULDER], 2));
+
+        if (w < 1e-6) w = 1e-6;
+
+        double cz = (z[LEFT_SHOULDER] + z[RIGHT_SHOULDER]) / 2.0;
+
+        for (int i = 0; i < z.length; i++) {
+            out[i] = (z[i] - cz) / w;
+        }
+
+        return out;
+    }
+
+    // =========================================================
+    // Print out pose result object in correct format
+    // =========================================================
+
+    public void printPoseResult(PoseResult result) {
+
+        if (result == null) {
+            System.out.println("PoseResult is null.");
+            return;
+        }
+
+        System.out.println(result.summaryText());
+
+        if (result.movementFeedback() == null || result.movementFeedback().isEmpty()) {
+            System.out.println("- No feedback needed!");
+        } else {
+            for (String feedback : result.movementFeedback()) {
+                System.out.println("- " + feedback);
             }
         }
 
-        return new ParseResult(result.toString(), worstTol);
+        System.out.println("Score: " + result.score());
+        System.out.println("Severity: " + result.severity());
+
+        String flavour = result.flavourText();
+
+        if (flavour == null || flavour.isBlank()) {
+            flavour = "";
+        }
+
+        System.out.println(flavour);
     }
 
-    // return appropriate tolerance level indexes
-    private Integer toleranceLevel(double diff, Double[] tols) {
-        double abs = Math.abs(diff);
+    // =========================================================
+    // Data structures
+    // =========================================================
 
-        if (abs > tols[0]) {
-            return 0; // very bad
-        } else if (abs > tols[1]) {
-            return 1; // bad
-        } else if (abs > tols[2]) {
-            return 2; // good
-        } else {
-            return 3; // perfect
+    static class MovementInfo {
+        Set<String> directions = new LinkedHashSet<>();
+        int worstTol = 3;
+    }
+
+    public record PoseResult(String summaryText, List<String> movementFeedback, double score, int severity,
+                             String flavourText, boolean valid) {
+
+    }
+
+    static class ParseStats {
+        double weightedSum = 0;
+        double weightTotal = 0;
+        int worstTol = 3;
+
+        void add(int tol, double weight) {
+
+            worstTol = Math.min(worstTol, tol);
+
+            double score = switch (tol) {
+                case 3 -> 1.0;
+                case 2 -> 0.7;
+                case 1 -> 0.3;
+                default -> 0.0;
+            };
+
+            weightedSum += score * weight;
+            weightTotal += weight;
+        }
+
+        double average() {
+            return weightTotal == 0 ? 1.0 : weightedSum / weightTotal;
         }
     }
 }
