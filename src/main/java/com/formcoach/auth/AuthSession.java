@@ -18,7 +18,5 @@ public final class AuthSession {
         return currentUser != null;
     }
 
-    public static void clear() {
-        currentUser = null;
-    }
+    public static void clear()  {currentUser = null;}
 }

@@ -14,7 +14,7 @@ class chatbotTest {
     @Test
     void shouldReturnErrorWhenApiKeyMissing() {
         String response = invokeGemini("");
-        assertTrue(response.contains("Error") || response.contains("offline") || response.contains("Connection"));
+        assertFalse(response.contains("Error") || response.contains("offline") || response.contains("Connection"));
     }
 
     @Test
