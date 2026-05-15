@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Main" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.formcoach.Main" />
+    <option name="VM_PARAMETERS" value="--add-modules javafx.controls,javafx.fxml,javafx.media" />
+    <module name="FormCoach" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
