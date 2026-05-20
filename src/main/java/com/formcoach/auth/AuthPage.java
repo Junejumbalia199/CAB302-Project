@@ -7,6 +7,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.net.URL;
 
@@ -86,7 +88,7 @@ public class AuthPage {
 
         root.getChildren().addAll(layout, backButton);
 
-        Scene scene = new Scene(root, 1280, 760);
+        Scene scene = new Scene(root, 1280, 800);
         applyCss(scene);
         updateMode();
         return scene;
@@ -96,14 +98,22 @@ public class AuthPage {
         HBox navBar = new HBox(40);
         navBar.getStyleClass().add("nav-bar");
 
-        Text logo = new Text("FormCoach");
-        logo.getStyleClass().add("logo-text");
+        Image logoImage = new Image(getClass().getResourceAsStream("/assets/FClogo.png"));
+        ImageView logoIcon = new ImageView(logoImage);
+        logoIcon.setFitHeight(36);
+        logoIcon.setPreserveRatio(true);
+
+        Text logoText = new Text("FormCoach");
+        logoText.getStyleClass().add("logo-text");
+
+        HBox logo = new HBox(10, logoIcon, logoText);
+        logo.setAlignment(Pos.CENTER_LEFT);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button btnHome = createNavButton("Home", true, () -> System.out.println("Home clicked"));
-        Button btnExercises = createNavButton("Exercises", false, () -> System.out.println("Exercises clicked"));
+        Button btnHome = createNavButton("Home", true, () -> { if (onBack != null) onBack.run(); });
+        Button btnExercises = createNavButton("Exercises", false, () -> { if (onBack != null) onBack.run(); });
         Button btnHistory = createNavButton("History", false, () -> System.out.println("History clicked"));
         Button btnProfile = createNavButton("Profile", false, () -> System.out.println("Profile clicked"));
 
