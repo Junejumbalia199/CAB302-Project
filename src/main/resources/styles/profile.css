@@ -28,6 +28,7 @@
 
 .nav-link:hover {
     -fx-text-fill: #0f172a;
+    -fx-background-color: #f1f5f9;
 }
 
 .nav-link-active {
