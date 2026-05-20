@@ -19,10 +19,9 @@
 .nav-link {
     -fx-text-fill: #64748b;
     -fx-font-weight: bold;
-    -fx-font-size: 16px;
     -fx-background-color: transparent;
-    -fx-background-radius: 16;
-    -fx-padding: 10 18;
+    -fx-background-radius: 10;
+    -fx-padding: 12 18;
     -fx-cursor: hand;
     -fx-border-color: transparent;
 }
@@ -34,7 +33,7 @@
 .nav-link-active {
     -fx-background-color: #0ea5e9;
     -fx-text-fill: white;
-    -fx-background-radius: 16;
+    -fx-background-radius: 10;
 }
 
 .page-title {

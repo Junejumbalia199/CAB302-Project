@@ -20,12 +20,15 @@
     -fx-font-weight: bold;
     -fx-background-color: transparent;
     -fx-cursor: hand;
+    -fx-padding: 12 18;
+    -fx-background-radius: 10;
 }
 
 .nav-link-active {
     -fx-background-color: #0ea5e9;
     -fx-text-fill: white;
     -fx-background-radius: 10;
+    -fx-padding: 12 18;
 }
 
 /* Hero Section */
