@@ -104,7 +104,7 @@ public class AuthPage {
 
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/FClogo.png"));
         ImageView logoIcon = new ImageView(logoImage);
-        logoIcon.setFitHeight(36);
+        logoIcon.setFitHeight(50);
         logoIcon.setPreserveRatio(true);
 
         Text logoText = new Text("FormCoach");
