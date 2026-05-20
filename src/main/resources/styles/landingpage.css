@@ -5,8 +5,10 @@
 
 /* Header Styles */
 .nav-bar {
-    -fx-padding: 20 60;
+    -fx-padding: 20 60 10 60;
     -fx-alignment: CENTER_LEFT;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
 .logo-text {
