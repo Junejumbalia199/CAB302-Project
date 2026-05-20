@@ -60,7 +60,7 @@ public class HistoryPage {
 
         root.getChildren().addAll(layout, chatbotWidget);
 
-        Scene scene = new Scene(root, 1280, 760);
+        Scene scene = new Scene(root, 1280, 800);
         applyCss(scene);
         return scene;
     }

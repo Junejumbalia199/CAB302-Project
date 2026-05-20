@@ -105,7 +105,7 @@ public class landingpage extends StackPane {
         fab.setOnAction(e -> chatbot.showChatbot(this.getScene().getWindow()));
 
         StackPane.setAlignment(fab, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(fab, new Insets(30));
+        StackPane.setMargin(fab, new Insets(0, 24, 24, 0));
 
         this.getChildren().addAll(mainLayout, fab);
     }

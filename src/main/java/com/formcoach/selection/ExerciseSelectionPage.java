@@ -129,7 +129,7 @@ public class ExerciseSelectionPage {
 
         root.getChildren().addAll(layout, helpButton, chatbotWidget);
 
-        Scene scene = new Scene(root, 1280, 760);
+        Scene scene = new Scene(root, 1280, 800);
         applyCss(scene);
         refreshExerciseCards();
         return scene;
