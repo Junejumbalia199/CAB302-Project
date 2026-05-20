@@ -55,9 +55,7 @@ public final class Navigator {
 
     /** Login / register card. Successful auth -> selection. Back -> landing. */
     public void showAuth() {
-        // AuthService is still just an interface; passing null puts the
-        // page into its demo mode (no real validation).
-        new AuthPage(stage, this::showLanding, this::showSelection, new DatabaseAuthService()).show();
+        new AuthPage(stage, this::showLanding, this::showSelection, new DatabaseAuthService(), this::showHistory, this::showProfile).show();
     }
 
     /** Paginated exercise picker. After show(), wire up all of its buttons. */

@@ -17,6 +17,8 @@ public class AuthPage {
     private final Stage stage;
     private final Runnable onBack;
     private final Runnable onAuthSuccess;
+    private final Runnable onHistory;
+    private final Runnable onProfile;
     private final AuthService authService;
 
     private boolean loginMode = true;
@@ -39,11 +41,13 @@ public class AuthPage {
     private Button submitButton;
     private Hyperlink switchLink;
 
-    public AuthPage(Stage stage, Runnable onBack, Runnable onAuthSuccess, AuthService authService) {
+    public AuthPage(Stage stage, Runnable onBack, Runnable onAuthSuccess, AuthService authService, Runnable onHistory, Runnable onProfile) {
         this.stage = stage;
         this.onBack = onBack;
         this.onAuthSuccess = onAuthSuccess;
         this.authService = authService;
+        this.onHistory = onHistory;
+        this.onProfile = onProfile;
     }
 
     public void show() {
@@ -114,8 +118,8 @@ public class AuthPage {
 
         Button btnHome = createNavButton("Home", true, () -> { if (onBack != null) onBack.run(); });
         Button btnExercises = createNavButton("Exercises", false, () -> { if (onBack != null) onBack.run(); });
-        Button btnHistory = createNavButton("History", false, () -> System.out.println("History clicked"));
-        Button btnProfile = createNavButton("Profile", false, () -> System.out.println("Profile clicked"));
+        Button btnHistory = createNavButton("History", false, () -> { if (onHistory != null) onHistory.run(); });
+        Button btnProfile = createNavButton("Profile", false, () -> { if (onProfile != null) onProfile.run(); });
 
         navBar.getChildren().addAll(logo, spacer, btnHome, btnExercises, btnHistory, btnProfile);
         return navBar;
