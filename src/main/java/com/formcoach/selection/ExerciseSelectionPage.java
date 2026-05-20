@@ -87,7 +87,7 @@ public class ExerciseSelectionPage {
         stage.setScene(scene);
         stage.setTitle("FormCoach - Exercise Selection");
         stage.setMinWidth(1280);
-        stage.setMinHeight(760);
+        stage.setMinHeight(800);
         stage.show();
     }
 

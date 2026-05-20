@@ -104,7 +104,7 @@ public class ProfilePage {
         content.getChildren().addAll(header, profileCard);
         root.setCenter(content);
 
-        Scene scene = new Scene(root, 1280, 760);
+        Scene scene = new Scene(root, 1280, 800);
         applyCss(scene);
 
         stage.setScene(scene);

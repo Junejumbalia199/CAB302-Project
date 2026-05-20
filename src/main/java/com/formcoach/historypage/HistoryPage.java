@@ -30,7 +30,7 @@ public class HistoryPage {
         stage.setScene(scene);
         stage.setTitle("FormCoach - Progress History");
         stage.setMinWidth(1280);
-        stage.setMinHeight(760);
+        stage.setMinHeight(800);
         stage.show();
     }
 
