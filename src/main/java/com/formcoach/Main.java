@@ -58,7 +58,7 @@ public class Main extends Application {
         warmup.start();
     }
 
-    // starts scripts/main.py as a child process - PoseDetector will connect once it's ready
+    // starts scripts/main.py as a child process - installs dependencies first if needed
     private static void startPoseServer() {
         Thread t = new Thread(() -> {
             try {
@@ -70,7 +70,16 @@ public class Main extends Application {
 
                 String python = findPython();
                 if (python == null) {
-                    System.err.println("[pose] no Python with mediapipe found - run: pip install mediapipe");
+                    System.err.println("[pose] no Python interpreter found - pose detection disabled");
+                    return;
+                }
+
+                // auto-install any missing packages before starting
+                installDependencies(python);
+
+                // confirm mediapipe is available after the install step
+                if (!checkImport(python, "mediapipe")) {
+                    System.err.println("[pose] mediapipe unavailable after install - pose detection disabled");
                     return;
                 }
 
@@ -97,6 +106,33 @@ public class Main extends Application {
         t.start();
     }
 
+    // runs pip install -r requirements.txt using the found Python interpreter
+    // pip skips packages that are already installed so this is fast after the first run
+    private static void installDependencies(String python) {
+        try {
+            File requirements = new File("scripts/requirements.txt");
+            if (!requirements.exists()) {
+                System.err.println("[pose] requirements.txt not found, skipping install");
+                return;
+            }
+            System.out.println("[pose] checking Python dependencies (first run may take a moment)...");
+            ProcessBuilder pb = new ProcessBuilder(
+                    python, "-m", "pip", "install", "-q", "-r", requirements.getAbsolutePath());
+            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+            pb.redirectErrorStream(true);
+            int exit = pb.start().waitFor();
+            if (exit == 0) {
+                System.out.println("[pose] dependencies ready");
+            } else {
+                System.err.println("[pose] pip install failed with exit code " + exit);
+            }
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            System.err.println("[pose] pip install error: " + e.getMessage());
+        }
+    }
+
     private static void stopPoseServer() {
         if (poseServerProcess != null && poseServerProcess.isAlive()) {
             poseServerProcess.destroy();
@@ -104,7 +140,7 @@ public class Main extends Application {
         }
     }
 
-    // finds a Python that actually has mediapipe installed, not just any Python on PATH
+    // finds the first Python interpreter available on PATH, any version
     private static String findPython() {
         boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
 
@@ -115,8 +151,7 @@ public class Main extends Application {
 
         for (String candidate : candidates) {
             try {
-                // verify mediapipe is actually importable, not just that Python exists
-                Process probe = new ProcessBuilder(candidate, "-c", "import mediapipe")
+                Process probe = new ProcessBuilder(candidate, "--version")
                         .redirectErrorStream(true)
                         .start();
                 if (probe.waitFor() == 0) {
@@ -126,6 +161,18 @@ public class Main extends Application {
             } catch (Exception ignored) {}
         }
         return null;
+    }
+
+    // checks whether a given module can be imported with the chosen interpreter
+    private static boolean checkImport(String python, String module) {
+        try {
+            Process probe = new ProcessBuilder(python, "-c", "import " + module)
+                    .redirectErrorStream(true)
+                    .start();
+            return probe.waitFor() == 0;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static void main(String[] args) {

@@ -65,16 +65,7 @@ def landmarks_to_json(result):
     return json.dumps(lms, separators=(',', ':'))
 
 
-def run_server(landmarker):
-    server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_sock.bind((HOST, PORT))
-    server_sock.listen(1)
-    print(f"[pose] server ready on {HOST}:{PORT} - waiting for Java app...")
-
-    conn, addr = server_sock.accept()
-    print(f"[pose] connected: {addr}")
-
+def handle_client(conn, landmarker):
     try:
         while True:
             # read the 4-byte big-endian length prefix
@@ -115,6 +106,23 @@ def run_server(landmarker):
         print(f"[pose] error: {e}")
     finally:
         conn.close()
+
+
+def run_server(landmarker):
+    server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_sock.bind((HOST, PORT))
+    server_sock.listen(1)
+    print(f"[pose] server ready on {HOST}:{PORT} - waiting for Java app...")
+
+    try:
+        # keep looping so the server stays alive between exercise sessions
+        while True:
+            conn, addr = server_sock.accept()
+            print(f"[pose] connected: {addr}")
+            handle_client(conn, landmarker)
+            print(f"[pose] client disconnected, waiting for next connection...")
+    finally:
         server_sock.close()
         print("[pose] server closed")
 

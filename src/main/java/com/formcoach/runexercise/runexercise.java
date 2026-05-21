@@ -37,7 +37,7 @@ import java.util.Set;
 public class runexercise {
 
     // how often the feedback text updates, in seconds - change this to adjust the rate
-    private static final double FEEDBACK_INTERVAL_SECONDS = 1.0;
+    private static final double FEEDBACK_INTERVAL_SECONDS = 5.0;
 
     private final Stage stage;
     private final String exerciseName;
