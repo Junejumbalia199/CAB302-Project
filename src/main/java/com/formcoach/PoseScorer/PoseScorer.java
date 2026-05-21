@@ -4,44 +4,71 @@ import java.util.List;
 
 /**
  * Scores how closely a live pose matches the reference data for a given exercise.
- * The returned score is between 0 (nothing matches) and 1 (perfect match).
- *
- * Scoring works by computing the same 7 joint angles used in the dataset, then
- * finding the closest reference frame and measuring how far off each angle is.
- * An error of 45 degrees on any single angle contributes the maximum penalty for
- * that joint, so small deviations have little effect on the overall score.
+ * Call score() each frame to get a ScorerResult containing the 0-1 similarity,
+ * the best-matching ideal pose xyz, and the exercise type string ready for
+ * passing straight into textoutputgen.
  */
 public final class PoseScorer {
 
     // per-angle error threshold in degrees - anything beyond this scores 0 for that joint
     private static final double MAX_ANGLE_ERROR_DEG = 45.0;
 
+    // returned when scoring can't produce a result
+    public static final ScorerResult INVALID = new ScorerResult(-1, null, null, null, null);
+
     private final PoseReference reference;
+    private final String textOutputType;
 
     public PoseScorer(String exerciseName) {
         reference = new PoseReference(exerciseName);
-        System.out.println("[form] loaded " + reference.getAngles().size()
+        textOutputType = toTextOutputType(exerciseName);
+        System.out.println("[form] loaded " + reference.getRows().size()
                 + " reference poses for: " + exerciseName);
     }
 
     /**
-     * Returns a 0-1 form score for the given landmark list, or -1 if scoring
-     * isn't possible (no landmarks, not enough points, unsupported exercise).
+     * Finds the best-matching reference pose for the given landmarks and returns a
+     * ScorerResult. Check isValid() before using the result. Returns INVALID if
+     * landmarks are incomplete or the exercise isn't supported.
      */
-    public double score(List<float[]> landmarks) {
-        if (landmarks == null || landmarks.size() < 33) return -1;
-        if (reference.getAngles().isEmpty()) return -1;
+    public ScorerResult score(List<float[]> landmarks) {
+        if (landmarks == null || landmarks.size() < 33) return INVALID;
+        if (reference.getRows().isEmpty()) return INVALID;
 
         double[] live = computeAngles(landmarks);
-        if (live == null) return -1;
+        if (live == null) return INVALID;
 
-        // find the reference row that best matches the current pose
-        double best = 0;
-        for (double[] ref : reference.getAngles()) {
-            double s = scoreAgainstRow(live, ref);
-            if (s > best) best = s;
+        // find the reference row with the highest angle similarity score
+        double bestScore = -1;
+        PoseReference.ReferenceRow bestRow = null;
+        for (PoseReference.ReferenceRow row : reference.getRows()) {
+            double s = scoreAgainstAngles(live, row.angles());
+            if (s > bestScore) {
+                bestScore = s;
+                bestRow = row;
+            }
         }
-        return best;
+
+        if (bestRow == null) return INVALID;
+        return new ScorerResult(bestScore, bestRow.x(), bestRow.y(), bestRow.z(), textOutputType);
+    }
+
+    // holds the result of one scoring pass - use isValid() before accessing fields
+    public record ScorerResult(double score, Double[] idealX, Double[] idealY, Double[] idealZ, String exerciseType) {
+        public boolean isValid() {
+            return score >= 0 && idealX != null && exerciseType != null;
+        }
+    }
+
+    // maps the display name to the string textoutputgen expects in its switch statement
+    private static String toTextOutputType(String exerciseName) {
+        if (exerciseName == null) return null;
+        return switch (exerciseName.toLowerCase()) {
+            case "push-ups" -> "Pushup";
+            case "sit-ups"  -> "Situp";
+            case "squats"   -> "Squat";
+            default         -> null;
+        };
     }
 
     // computes the 7 joint angles that match the dataset's angle columns
@@ -78,11 +105,11 @@ public final class PoseScorer {
         double bcx = c[0] - b[0];
         double bcy = c[1] - b[1];
 
-        double dot = bax * bcx + bay * bcy;
-        double magBA = Math.sqrt(bax * bax + bay * bay);
-        double magBC = Math.sqrt(bcx * bcx + bcy * bcy);
+        double dot    = bax * bcx + bay * bcy;
+        double magBA  = Math.sqrt(bax * bax + bay * bay);
+        double magBC  = Math.sqrt(bcx * bcx + bcy * bcy);
 
-        // avoid divide-by-zero if two landmarks are on the same pixel
+        // avoid divide-by-zero if two landmarks overlap
         if (magBA < 1e-6 || magBC < 1e-6) return 0;
 
         // clamp for floating point rounding that might push past +/-1
@@ -95,8 +122,8 @@ public final class PoseScorer {
         return new float[]{(a[0] + b[0]) / 2f, (a[1] + b[1]) / 2f, 0f, 0f};
     }
 
-    // scores one live angle vector against one reference row, returns 0-1
-    private static double scoreAgainstRow(double[] live, double[] ref) {
+    // scores one live angle vector against one reference row's angles, returns 0-1
+    private static double scoreAgainstAngles(double[] live, double[] ref) {
         double totalError = 0;
         for (int i = 0; i < 7; i++) {
             double normError = Math.abs(live[i] - ref[i]) / MAX_ANGLE_ERROR_DEG;

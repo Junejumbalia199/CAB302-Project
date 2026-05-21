@@ -3,6 +3,8 @@ package com.formcoach.runexercise;
 import com.formcoach.camera.CameraView;
 import com.formcoach.chatbot.chatbot;
 import com.formcoach.poseanalysis.PoseScorer;
+import com.formcoach.textoutputgen.PoseValidationException;
+import com.formcoach.textoutputgen.textoutputgen;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -34,10 +36,16 @@ import java.util.Set;
  */
 public class runexercise {
 
+    // how often the feedback text updates, in seconds - change this to adjust the rate
+    private static final double FEEDBACK_INTERVAL_SECONDS = 1.0;
+
     private final Stage stage;
     private final String exerciseName;
     private final Runnable onBack;
     private TextArea outputArea;
+
+    // tracks when feedback was last written so we can throttle it
+    private long lastFeedbackTime = 0;
 
     public runexercise(Stage stage, String exerciseName, Runnable onBack) {
         this.stage        = stage;
@@ -69,10 +77,49 @@ public class runexercise {
         Set<String> scoredExercises = Set.of("Push-ups", "Sit-ups", "Squats");
         if (scoredExercises.contains(exerciseName)) {
             PoseScorer scorer = new PoseScorer(exerciseName);
+            textoutputgen gen = new textoutputgen();
             cam.setOnLandmarks(landmarks -> {
-                double score = scorer.score(landmarks);
-                if (score >= 0) {
-                    System.out.printf("[form] score: %.3f%n", score);
+                // find the best-matching reference pose
+                PoseScorer.ScorerResult match = scorer.score(landmarks);
+                if (!match.isValid()) return;
+
+                // only update the feedback text on the configured interval
+                long now = System.currentTimeMillis();
+                if (now - lastFeedbackTime < (long)(FEEDBACK_INTERVAL_SECONDS * 1000)) return;
+                lastFeedbackTime = now;
+
+                // convert live landmarks to the Double[] format textoutputgen expects
+                Double[] userX = new Double[33];
+                Double[] userY = new Double[33];
+                Double[] userZ = new Double[33];
+                for (int i = 0; i < 33; i++) {
+                    float[] lm = landmarks.get(i);
+                    userX[i] = (double) lm[0];
+                    userY[i] = (double) lm[1];
+                    userZ[i] = (double) lm[2];
+                }
+
+                try {
+                    textoutputgen.PoseResult result = gen.output(
+                            userX, userY, userZ,
+                            match.idealX(), match.idealY(), match.idealZ(),
+                            match.exerciseType()
+                    );
+
+                    // build the feedback string and replace the text area content
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(result.summaryText());
+                    if (!result.movementFeedback().isEmpty()) {
+                        sb.append("\n");
+                        for (String feedback : result.movementFeedback()) {
+                            sb.append("\n  ").append(feedback);
+                        }
+                    }
+                    sb.append("\n\nScore: ").append(result.score()).append(" / 10");
+                    outputArea.setText(sb.toString());
+
+                } catch (PoseValidationException e) {
+                    System.err.println("[form] validation error: " + e.getMessage());
                 }
             });
         }
@@ -107,7 +154,6 @@ public class runexercise {
         outputArea.setEditable(false); // Prevent user editing
         outputArea.setWrapText(true);  // Wrap long lines
         VBox.setMargin(outputArea, new Insets(0, 100, 0, 100));
-        appendOutput("This is where the text output generator will send things to");
 
         root.getChildren().addAll(header, feed, hint, outputArea);
 
