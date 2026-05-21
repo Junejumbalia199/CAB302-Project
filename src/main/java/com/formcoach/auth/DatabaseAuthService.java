@@ -26,7 +26,7 @@ public class DatabaseAuthService implements AuthService {
             return AuthResult.failure("No account found with those details.");
         }
 
-        if (!user.getPassword().equals(password)) {
+        if (!PasswordUtil.verifyPassword(password, user.getPassword())) {
             return AuthResult.failure("Incorrect password.");
         }
 
@@ -44,9 +44,11 @@ public class DatabaseAuthService implements AuthService {
             return AuthResult.failure("Email already registered.");
         }
 
+        String hashedPassword = PasswordUtil.hashPassword(request.getPassword());
+
         User user = new User(
                 request.getUsername(),
-                request.getPassword(),
+                hashedPassword,
                 request.getEmail()
         );
 
