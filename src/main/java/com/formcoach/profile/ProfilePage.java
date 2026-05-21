@@ -104,7 +104,7 @@ public class ProfilePage {
         content.getChildren().addAll(header, profileCard);
         root.setCenter(content);
 
-        Scene scene = new Scene(root, 1280, 760);
+        Scene scene = new Scene(root, 1280, 800);
         applyCss(scene);
 
         stage.setScene(scene);
@@ -119,7 +119,7 @@ public class ProfilePage {
 
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/FClogo.png"));
         ImageView logoIcon = new ImageView(logoImage);
-        logoIcon.setFitHeight(36);
+        logoIcon.setFitHeight(50);
         logoIcon.setPreserveRatio(true);
 
         Text logoText = new Text("FormCoach");

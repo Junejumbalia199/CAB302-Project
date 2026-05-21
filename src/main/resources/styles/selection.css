@@ -11,7 +11,7 @@
 }
 
 .logo-text {
-    -fx-font-size: 22px;
+    -fx-font-size: 30px;
     -fx-font-weight: bold;
     -fx-fill: #0f172a;
 }
@@ -23,6 +23,11 @@
     -fx-cursor: hand;
     -fx-padding: 12 18;
     -fx-background-radius: 10;
+}
+
+.nav-link:hover {
+    -fx-text-fill: #0f172a;
+    -fx-background-color: #f1f5f9;
 }
 
 .nav-link-active {
@@ -257,4 +262,13 @@
 
 .selection-scroll > .viewport {
     -fx-background-color: transparent;
+}
+
+/* chatbox popup button */
+.chat-fab {
+    -fx-background-color: #0ea5e9;
+    -fx-background-radius: 50;
+    -fx-min-width: 55;
+    -fx-min-height: 55;
+    -fx-cursor: hand;
 }

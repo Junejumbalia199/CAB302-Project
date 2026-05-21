@@ -87,7 +87,7 @@ public class ExerciseSelectionPage {
         stage.setScene(scene);
         stage.setTitle("FormCoach - Exercise Selection");
         stage.setMinWidth(1280);
-        stage.setMinHeight(760);
+        stage.setMinHeight(800);
         stage.show();
     }
 
@@ -129,7 +129,7 @@ public class ExerciseSelectionPage {
 
         root.getChildren().addAll(layout, helpButton, chatbotWidget);
 
-        Scene scene = new Scene(root, 1280, 760);
+        Scene scene = new Scene(root, 1280, 800);
         applyCss(scene);
         refreshExerciseCards();
         return scene;
@@ -142,7 +142,7 @@ public class ExerciseSelectionPage {
 
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/FClogo.png"));
         ImageView logoIcon = new ImageView(logoImage);
-        logoIcon.setFitHeight(36);
+        logoIcon.setFitHeight(50);
         logoIcon.setPreserveRatio(true);
 
         Text logoText = new Text("FormCoach");

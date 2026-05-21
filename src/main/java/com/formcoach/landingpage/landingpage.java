@@ -20,13 +20,17 @@ public class landingpage extends StackPane {
         // Main Layout Container
         VBox mainLayout = new VBox();
 
+        VBox topWrapper = new VBox();
+        topWrapper.setPadding(new Insets(18, 24, 0, 24));
+
         // --- Navigation Bar ---
         HBox navBar = new HBox(40);
         navBar.getStyleClass().add("nav-bar");
+        navBar.setAlignment(Pos.CENTER_LEFT);
 
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/FClogo.png"));
         ImageView logoIcon = new ImageView(logoImage);
-        logoIcon.setFitHeight(36);
+        logoIcon.setFitHeight(50);
         logoIcon.setPreserveRatio(true);
 
         Text logoText = new Text("FormCoach");
@@ -52,6 +56,8 @@ public class landingpage extends StackPane {
 
         navBar.getChildren().addAll(logo, spacer, btnHome, btnExercises, btnHistory, btnProfile);
 
+        topWrapper.getChildren().add(navBar);
+
         // --- Hero Content ---
         VBox heroSection = new VBox(25);
         heroSection.getStyleClass().add("hero-container");
@@ -64,9 +70,11 @@ public class landingpage extends StackPane {
         // Rich text for the headline
         Text t1 = new Text("Perfect your ");
         t1.getStyleClass().add("headline");
+
         Text t2 = new Text("exercise\nform");
         t2.getStyleClass().add("headline-accent");
         t2.setStyle("-fx-font-size: 64px; -fx-font-weight: 900;");
+
         Text t3 = new Text(" with AI");
         t3.getStyleClass().add("headline");
 
@@ -77,24 +85,27 @@ public class landingpage extends StackPane {
         description.setWrapText(true);
 
         HBox actionButtons = new HBox(15);
+
         Button btnBrowse = new Button("Browse Exercises  →");
         btnBrowse.getStyleClass().add("btn-primary");
 
         Button btnProgress = new Button("View Progress");
         btnProgress.getStyleClass().add("btn-secondary");
+
         actionButtons.getChildren().addAll(btnBrowse, btnProgress);
 
         heroSection.getChildren().addAll(badge, headline, description, actionButtons);
 
-        mainLayout.getChildren().addAll(navBar, heroSection);
+        mainLayout.getChildren().addAll(topWrapper, heroSection);
 
         // chatbot button
         Button fab = new Button("💬");
         fab.getStyleClass().add("chat-fab");
         fab.setTextFill(Color.WHITE);
         fab.setOnAction(e -> chatbot.showChatbot(this.getScene().getWindow()));
+
         StackPane.setAlignment(fab, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(fab, new Insets(30));
+        StackPane.setMargin(fab, new Insets(0, 24, 24, 0));
 
         this.getChildren().addAll(mainLayout, fab);
     }
