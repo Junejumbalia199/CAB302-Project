@@ -114,6 +114,10 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.formcoach.Main</mainClass>
+                    <options>
+                        <!-- fixes an internal access bug in javafx-media 21.0.1 -->
+                        <option>--add-opens=javafx.base/com.sun.javafx=javafx.media</option>
+                    </options>
                 </configuration>
             </plugin>
 

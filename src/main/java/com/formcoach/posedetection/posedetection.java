@@ -1,5 +1,6 @@
 package com.formcoach.posedetection;
 
+import com.formcoach.camera.CameraView;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -8,10 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 /**
@@ -45,21 +43,18 @@ public class posedetection {
         back.setStyle("-fx-background-color: white; -fx-text-fill: #1f2937;"
                 + "-fx-border-color: #e5e7eb; -fx-border-radius: 8;"
                 + "-fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;");
-        back.setOnAction(e -> { if (onBack != null) onBack.run(); });
+
+        // live camera feed - skeleton overlay shows automatically if DEBUG_MODE is true
+        CameraView feed = new CameraView(900, 500);
+        feed.start();
+
+        back.setOnAction(e -> {
+            feed.stop();
+            if (onBack != null) onBack.run();
+        });
 
         HBox header = new HBox(16, title, spacer, back);
         header.setAlignment(Pos.CENTER_LEFT);
-
-        Rectangle canvas = new Rectangle(900, 500, Color.web("#111827"));
-        canvas.setArcWidth(16);
-        canvas.setArcHeight(16);
-
-        Label overlay = new Label("Pose tracker preview");
-        overlay.setTextFill(Color.web("#9ca3af"));
-        overlay.setStyle("-fx-font-size: 16px;");
-
-        StackPane feed = new StackPane(canvas, overlay);
-        feed.setAlignment(Pos.CENTER);
 
         Label hint = new Label(
                 "Standalone pose checker — not tied to a specific exercise.");

@@ -1,6 +1,13 @@
 import mediapipe as mp
 import cv2
+import json
+import numpy as np
+import socket
+import struct
+import threading
+import time
 
+# run from the scripts/ directory, or adjust this path
 model_path = "../src/main/resources/assets/pose_landmarker_heavy.task"
 
 BaseOptions = mp.tasks.BaseOptions
@@ -9,107 +16,113 @@ PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
 PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
-debug_mode = True   # Set to True to make pose landmarks visible
-highlight_points = [3, 9] # Add any integer 0-32 to turn those nodes blue, to help with identifying a specific landmark
-
-# Pose connections (pairs of landmark indices to draw lines between)
-POSE_CONNECTIONS = [
-    (0, 1), (1, 2), (2, 3), (3, 7),
-    (0, 4), (4, 5), (5, 6), (6, 8),
-    (9, 10),
-    (11, 12), (11, 13), (13, 15), (15, 17), (15, 19), (15, 21), (17, 19),
-    (12, 14), (14, 16), (16, 18), (16, 20), (16, 22), (18, 20),
-    (11, 23), (12, 24), (23, 24),
-    (23, 25), (25, 27), (27, 29), (27, 31), (29, 31),
-    (24, 26), (26, 28), (28, 30), (28, 32), (30, 32),
-]
-
-# Left side landmarks (drawn in green), right side in red
-LEFT_LANDMARKS = {1, 2, 3, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31}
-RIGHT_LANDMARKS = {4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32}
-
-'''
-Legend (left and right is from user's perspective):
-
-0 - nose
-1 - left eye (inner)
-2 - left eye
-3 - left eye (outer)
-4 - right eye (inner)
-5 - right eye
-6 - right eye (outer)
-7 - left ear
-8 - right ear
-9 - mouth (left)
-10 - mouth (right)
-11 - left shoulder
-12 - right shoulder
-13 - left elbow
-14 - right elbow
-15 - left wrist
-16 - right wrist
-17 - left pinky
-18 - right pinky
-19 - left index
-20 - right index
-21 - left thumb
-22 - right thumb
-23 - left hip
-24 - right hip
-25 - left knee
-26 - right knee
-27 - left ankle
-28 - right ankle
-29 - left heel
-30 - right heel
-31 - left foot index
-32 - right foot index
-'''
+HOST = "127.0.0.1"
+PORT = 5001
 
 latest_result = None
+result_lock = threading.Lock()
+
+'''
+Landmark index reference (left/right from user's perspective):
+
+0  - nose
+1  - left eye (inner)    4  - right eye (inner)
+2  - left eye            5  - right eye
+3  - left eye (outer)    6  - right eye (outer)
+7  - left ear            8  - right ear
+9  - mouth (left)        10 - mouth (right)
+11 - left shoulder       12 - right shoulder
+13 - left elbow          14 - right elbow
+15 - left wrist          16 - right wrist
+17 - left pinky          18 - right pinky
+19 - left index          20 - right index
+21 - left thumb          22 - right thumb
+23 - left hip            24 - right hip
+25 - left knee           26 - right knee
+27 - left ankle          28 - right ankle
+29 - left heel           30 - right heel
+31 - left foot index     32 - right foot index
+'''
 
 
 def store_result(result: PoseLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     global latest_result
-    latest_result = result
+    with result_lock:
+        latest_result = result
 
-    # Temporary print to show what the output value currently is - in future you will call the variable latest_result
-    print('pose landmarker result: {}'.format(latest_result))
+    # print all landmark coords to console so you can verify detection is working
+    if result and result.pose_landmarks:
+        for pose in result.pose_landmarks:
+            for i, lm in enumerate(pose):
+                print(f"  [{i:2d}] x={lm.x:.4f}  y={lm.y:.4f}  z={lm.z:.4f}  vis={lm.visibility:.4f}")
+        print()
 
-def draw_landmarks(frame, result: PoseLandmarkerResult):
+
+def landmarks_to_json(result):
+    # returns a JSON array of landmark objects, or "null" if nothing detected
     if not result or not result.pose_landmarks:
-        return frame
+        return "null"
+    # only the first detected pose for now
+    pose = result.pose_landmarks[0]
+    lms = [
+        {"x": lm.x, "y": lm.y, "z": lm.z, "visibility": lm.visibility}
+        for lm in pose
+    ]
+    return json.dumps(lms)
 
-    annotated = frame.copy()
-    h, w = annotated.shape[:2]
 
-    for pose_landmarks in result.pose_landmarks:
-        # Convert normalised coords to pixel coords
-        points = [
-            (int(lm.x * w), int(lm.y * h))
-            for lm in pose_landmarks
-        ]
+def run_server(landmarker):
+    server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_sock.bind((HOST, PORT))
+    server_sock.listen(1)
+    print(f"[pose] server ready on {HOST}:{PORT} - waiting for Java app...")
 
-        # Draw connections
-        for start_idx, end_idx in POSE_CONNECTIONS:
-            if start_idx < len(points) and end_idx < len(points):
-                cv2.line(annotated, points[start_idx], points[end_idx], (200, 200, 200), 2)
+    conn, addr = server_sock.accept()
+    print(f"[pose] connected: {addr}")
 
-        # Draw landmark dots
-        for idx, point in enumerate(points):
-            if idx in highlight_points:
-                color = (255, 0, 0)    # Change idx (-1) to single out that point by giving it a unique color
-            elif idx in LEFT_LANDMARKS:
-                color = (0, 255, 0)    # Green for left
-            elif idx in RIGHT_LANDMARKS:
-                color = (0, 0, 255)    # Red for right
-            else:
-                color = (255, 255, 255)  # White for centre
+    try:
+        while True:
+            # read the 4-byte big-endian length prefix
+            header = b""
+            while len(header) < 4:
+                chunk = conn.recv(4 - len(header))
+                if not chunk:
+                    return
+                header += chunk
+            msg_len = struct.unpack(">I", header)[0]
 
-            cv2.circle(annotated, point, 5, color, -1)
-            cv2.circle(annotated, point, 6, (0, 0, 0), 1)  # Black outline
+            # read exactly msg_len bytes for the JPEG frame
+            data = b""
+            while len(data) < msg_len:
+                chunk = conn.recv(min(65536, msg_len - len(data)))
+                if not chunk:
+                    return
+                data += chunk
 
-    return annotated
+            # decode JPEG and run async detection
+            np_arr = np.frombuffer(data, dtype=np.uint8)
+            frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            if frame is not None:
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+                # timestamp just needs to be strictly increasing for live stream mode
+                timestamp_ms = int(time.monotonic() * 1000)
+                landmarker.detect_async(mp_image, timestamp_ms)
+
+            # send back the most recent result - may lag one frame, that's fine
+            with result_lock:
+                response = landmarks_to_json(latest_result)
+
+            response_bytes = response.encode("utf-8")
+            conn.sendall(struct.pack(">I", len(response_bytes)) + response_bytes)
+
+    except Exception as e:
+        print(f"[pose] error: {e}")
+    finally:
+        conn.close()
+        server_sock.close()
+        print("[pose] server closed")
 
 
 options = PoseLandmarkerOptions(
@@ -118,29 +131,5 @@ options = PoseLandmarkerOptions(
     result_callback=store_result
 )
 
-cap = cv2.VideoCapture(0)
-
 with PoseLandmarker.create_from_options(options) as landmarker:
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            print("Failed to grab frame.")
-            break
-
-        frame_timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC))
-
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-        landmarker.detect_async(mp_image, frame_timestamp_ms)
-
-        if debug_mode:
-            annotated_frame = draw_landmarks(frame, latest_result)
-        else:
-            annotated_frame = frame
-
-        cv2.imshow("Pose Landmarker", annotated_frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-cap.release()
-cv2.destroyAllWindows()
+    run_server(landmarker)
