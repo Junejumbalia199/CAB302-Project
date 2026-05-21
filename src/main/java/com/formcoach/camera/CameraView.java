@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Cross-platform webcam preview. Iterates available cameras (USB / built-in /
@@ -61,6 +62,13 @@ public class CameraView extends StackPane {
     private WritableImage frameBuffer;
     private PoseDetector poseDetector;
 
+    // actual camera frame dimensions, set on first grab and used for landmark mapping
+    private volatile int frameWidth;
+    private volatile int frameHeight;
+
+    // optional callback fired on the JavaFX thread each time landmarks arrive
+    private Consumer<List<float[]>> landmarkCallback;
+
     public CameraView(double width, double height) {
         setStyle("-fx-background-color: #111827; -fx-background-radius: 16;");
         setMinSize(width, height);
@@ -80,14 +88,26 @@ public class CameraView extends StackPane {
         getChildren().addAll(view, overlay, status);
     }
 
+    /**
+     * Registers a callback that fires on the JavaFX thread each time a new set
+     * of landmarks arrives from the pose server. Call this before start() so the
+     * pose detector gets launched. Passing null clears the callback.
+     */
+    public void setOnLandmarks(Consumer<List<float[]>> callback) {
+        this.landmarkCallback = callback;
+    }
+
     /** Start camera discovery and the grab loop on a background thread. */
     public void start() {
         showStatus("Connecting to camera…");
         running = true;
 
-        // start the pose detector if debug mode is on
-        if (PoseDetector.DEBUG_MODE) {
-            poseDetector = new PoseDetector(this::drawSkeleton);
+        // launch the pose detector if the skeleton overlay or scoring is needed
+        if (PoseDetector.DEBUG_MODE || landmarkCallback != null) {
+            poseDetector = new PoseDetector(landmarks -> {
+                if (PoseDetector.DEBUG_MODE) drawSkeleton(landmarks);
+                if (landmarkCallback != null) landmarkCallback.accept(landmarks);
+            });
             poseDetector.start();
         }
 
@@ -140,6 +160,12 @@ public class CameraView extends StackPane {
             }
             if (frame == null) continue;
 
+            // store the real frame size once so the skeleton transform stays accurate
+            if (frameWidth == 0) {
+                frameWidth  = frame.getWidth();
+                frameHeight = frame.getHeight();
+            }
+
             // hand the raw frame to the pose detector before converting it
             if (poseDetector != null) {
                 poseDetector.submitFrame(frame);
@@ -164,9 +190,18 @@ public class CameraView extends StackPane {
         gc.clearRect(0, 0, overlay.getWidth(), overlay.getHeight());
 
         if (landmarks == null || landmarks.isEmpty()) return;
+        if (frameWidth <= 0 || frameHeight <= 0) return;
 
-        double w = overlay.getWidth();
-        double h = overlay.getHeight();
+        double canvasW = overlay.getWidth();
+        double canvasH = overlay.getHeight();
+
+        // the ImageView preserves aspect ratio, so the actual image may not fill the
+        // canvas - work out the real image bounds to keep the skeleton aligned
+        double scale = Math.min(canvasW / frameWidth, canvasH / frameHeight);
+        double imgW  = frameWidth  * scale;
+        double imgH  = frameHeight * scale;
+        double offX  = (canvasW - imgW) / 2.0;
+        double offY  = (canvasH - imgH) / 2.0;
 
         // draw connecting lines first so dots sit on top
         gc.setStroke(Color.web("#c8c8c8"));
@@ -176,15 +211,16 @@ public class CameraView extends StackPane {
             if (a < landmarks.size() && b < landmarks.size()) {
                 float[] pa = landmarks.get(a);
                 float[] pb = landmarks.get(b);
-                gc.strokeLine(pa[0] * w, pa[1] * h, pb[0] * w, pb[1] * h);
+                gc.strokeLine(offX + pa[0] * imgW, offY + pa[1] * imgH,
+                        offX + pb[0] * imgW, offY + pb[1] * imgH);
             }
         }
 
         // draw each landmark dot
         for (int i = 0; i < landmarks.size(); i++) {
             float[] lm = landmarks.get(i);
-            double x = lm[0] * w;
-            double y = lm[1] * h;
+            double x = offX + lm[0] * imgW;
+            double y = offY + lm[1] * imgH;
 
             if (HIGHLIGHT_POINTS.contains(i)) {
                 gc.setFill(Color.BLUE);
