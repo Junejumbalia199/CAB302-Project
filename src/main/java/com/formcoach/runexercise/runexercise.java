@@ -2,6 +2,7 @@ package com.formcoach.runexercise;
 
 import com.formcoach.camera.CameraView;
 import com.formcoach.chatbot.chatbot;
+import com.formcoach.poseanalysis.PoseScorer;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -22,6 +23,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.net.URL;
+import java.util.Set;
 
 /**
  * Live exercise session placeholder. The real pose pipeline lives in
@@ -61,6 +63,20 @@ public class runexercise {
         // camera) — I just need to remember to call stop() on it before
         // the user leaves this page, otherwise the camera light stays on.
         CameraView cam = new CameraView(900, 500);
+
+        // set up form scoring for the three supported exercises
+        // this has to happen before cam.start() so the pose detector gets launched
+        Set<String> scoredExercises = Set.of("Push-ups", "Sit-ups", "Squats");
+        if (scoredExercises.contains(exerciseName)) {
+            PoseScorer scorer = new PoseScorer(exerciseName);
+            cam.setOnLandmarks(landmarks -> {
+                double score = scorer.score(landmarks);
+                if (score >= 0) {
+                    System.out.printf("[form] score: %.3f%n", score);
+                }
+            });
+        }
+
         cam.start();
 
         Button back = new Button("← Back to exercises");

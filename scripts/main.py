@@ -50,13 +50,6 @@ def store_result(result: PoseLandmarkerResult, output_image: mp.Image, timestamp
     with result_lock:
         latest_result = result
 
-    # print all landmark coords to console so you can verify detection is working
-    if result and result.pose_landmarks:
-        for pose in result.pose_landmarks:
-            for i, lm in enumerate(pose):
-                print(f"  [{i:2d}] x={lm.x:.4f}  y={lm.y:.4f}  z={lm.z:.4f}  vis={lm.visibility:.4f}")
-        print()
-
 
 def landmarks_to_json(result):
     # returns a JSON array of landmark objects, or "null" if nothing detected
