@@ -68,7 +68,8 @@ def landmarks_to_json(result):
         {"x": lm.x, "y": lm.y, "z": lm.z, "visibility": lm.visibility}
         for lm in pose
     ]
-    return json.dumps(lms)
+    # compact separators are required - the Java regex expects no spaces around : or ,
+    return json.dumps(lms, separators=(',', ':'))
 
 
 def run_server(landmarker):
