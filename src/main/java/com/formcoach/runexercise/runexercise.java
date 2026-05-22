@@ -38,6 +38,8 @@ public class runexercise {
 
     // how often the feedback text updates, in seconds - change this to adjust the rate
     private static final double FEEDBACK_INTERVAL_SECONDS = 5.0;
+    // Track whether the camera is running
+    final boolean[] camRunning = {false}; // start as true because cam.start() is called below
 
     private final Stage stage;
     private final String exerciseName;
@@ -79,16 +81,16 @@ public class runexercise {
             PoseScorer scorer = new PoseScorer(exerciseName);
             textoutputgen gen = new textoutputgen();
             cam.setOnLandmarks(landmarks -> {
-                // find the best-matching reference pose
+                if (!camRunning[0]) return; // skip processing if paused
+
+                // existing scoring code
                 PoseScorer.ScorerResult match = scorer.score(landmarks);
                 if (!match.isValid()) return;
 
-                // only update the feedback text on the configured interval
                 long now = System.currentTimeMillis();
                 if (now - lastFeedbackTime < (long)(FEEDBACK_INTERVAL_SECONDS * 1000)) return;
                 lastFeedbackTime = now;
 
-                // convert live landmarks to the Double[] format textoutputgen expects
                 Double[] userX = new Double[33];
                 Double[] userY = new Double[33];
                 Double[] userZ = new Double[33];
@@ -106,7 +108,6 @@ public class runexercise {
                             match.exerciseType()
                     );
 
-                    // build the feedback string and replace the text area content
                     StringBuilder sb = new StringBuilder();
                     sb.append(result.summaryText());
                     if (!result.movementFeedback().isEmpty()) {
@@ -124,7 +125,7 @@ public class runexercise {
             });
         }
 
-        cam.start();
+        // cam.start();
 
         Button back = new Button("← Back to exercises");
         /*back.setStyle("-fx-background-color: white; -fx-text-fill: #1f2937;"
@@ -142,6 +143,22 @@ public class runexercise {
 
         StackPane feed = new StackPane(cam);
         feed.setAlignment(Pos.CENTER);
+
+        Rectangle overlay = new Rectangle(900, 500, Color.rgb(0, 0, 0, 0.4));
+        overlay.setVisible(true); // show overlay initially
+        feed.getChildren().add(overlay);
+
+        feed.setOnMouseClicked(e -> {
+            if (camRunning[0]) {
+                cam.stop();
+                camRunning[0] = false;
+                overlay.setVisible(true);
+            } else {
+                cam.start();
+                camRunning[0] = true;
+                overlay.setVisible(false);
+            }
+        });
 
         // replace with hint on how to run program.
         // "Click on the area above to start or stop video. Text feedback will appear below."
