@@ -1,6 +1,8 @@
 package com.formcoach.auth;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,25 +17,37 @@ class DatabaseAuthServiceTest {
     void setUp() {
         userDAO = new FakeUserDAO();
         authService = new DatabaseAuthService(userDAO);
+        AuthSession.clear();
     }
 
     @Test
     void registerSucceedsForNewUser() {
         AuthResult result = authService.register(
-                new UserRegistrationRequest("lebron", "lebrontest@gmail.com", "123456")
+                new UserRegistrationRequest("lebron", "lebrontest@gmail.com", "Password123!")
         );
 
         assertTrue(result.isSuccess());
         assertEquals("Account created successfully.", result.getMessage());
-        assertNotNull(userDAO.getUserByUsername("lebron"));
+
+        User storedUser = userDAO.getUserByUsername("lebron");
+        assertNotNull(storedUser);
+        assertEquals("lebrontest@gmail.com", storedUser.getEmail());
+
+        // Confirm password was stored hashed, not plain text
+        assertNotEquals("Password123!", storedUser.getPassword());
+        assertTrue(PasswordUtil.verifyPassword("Password123!", storedUser.getPassword()));
     }
 
     @Test
     void registerFailsWhenUsernameAlreadyExists() {
-        userDAO.addUser(new User("lebron", "123456", "lebrontest1@gmail.com"));
+        userDAO.addUser(new User(
+                "lebron",
+                PasswordUtil.hashPassword("Password123!"),
+                "lebrontest1@gmail.com"
+        ));
 
         AuthResult result = authService.register(
-                new UserRegistrationRequest("lebron", "lebrontest2@gmail.com", "123456")
+                new UserRegistrationRequest("lebron", "lebrontest2@gmail.com", "Password123!")
         );
 
         assertFalse(result.isSuccess());
@@ -42,10 +56,14 @@ class DatabaseAuthServiceTest {
 
     @Test
     void registerFailsWhenEmailAlreadyExists() {
-        userDAO.addUser(new User("lebron", "123456", "lebron@test.com"));
+        userDAO.addUser(new User(
+                "lebron",
+                PasswordUtil.hashPassword("Password123!"),
+                "lebron@test.com"
+        ));
 
         AuthResult result = authService.register(
-                new UserRegistrationRequest("lebron2", "lebron@test.com", "123456")
+                new UserRegistrationRequest("lebron2", "lebron@test.com", "Password123!")
         );
 
         assertFalse(result.isSuccess());
@@ -54,40 +72,58 @@ class DatabaseAuthServiceTest {
 
     @Test
     void loginSucceedsWithUsernameAndCorrectPassword() {
-        userDAO.addUser(new User("lebron", "123456", "lebron@test.com"));
+        userDAO.addUser(new User(
+                "lebron",
+                PasswordUtil.hashPassword("Password123!"),
+                "lebron@test.com"
+        ));
 
-        AuthResult result = authService.login("lebron", "123456");
+        AuthResult result = authService.login("lebron", "Password123!");
 
         assertTrue(result.isSuccess());
         assertEquals("Login successful.", result.getMessage());
+        assertNotNull(AuthSession.getCurrentUser());
+        assertEquals("lebron", AuthSession.getCurrentUser().getUsername());
     }
 
     @Test
     void loginSucceedsWithEmailAndCorrectPassword() {
-        userDAO.addUser(new User("lebron", "123456", "lebron@test.com"));
+        userDAO.addUser(new User(
+                "lebron",
+                PasswordUtil.hashPassword("Password123!"),
+                "lebron@test.com"
+        ));
 
-        AuthResult result = authService.login("lebron@test.com", "123456");
+        AuthResult result = authService.login("lebron@test.com", "Password123!");
 
         assertTrue(result.isSuccess());
         assertEquals("Login successful.", result.getMessage());
+        assertNotNull(AuthSession.getCurrentUser());
+        assertEquals("lebron@test.com", AuthSession.getCurrentUser().getEmail());
     }
 
     @Test
     void loginFailsWhenUserDoesNotExist() {
-        AuthResult result = authService.login("michael", "123456");
+        AuthResult result = authService.login("michael", "Password123!");
 
         assertFalse(result.isSuccess());
         assertEquals("No account found with those details.", result.getMessage());
+        assertNull(AuthSession.getCurrentUser());
     }
 
     @Test
     void loginFailsWhenPasswordIsWrong() {
-        userDAO.addUser(new User("lebron", "123456", "lebron@test.com"));
+        userDAO.addUser(new User(
+                "lebron",
+                PasswordUtil.hashPassword("Password123!"),
+                "lebron@test.com"
+        ));
 
-        AuthResult result = authService.login("lebron", "111111");
+        AuthResult result = authService.login("lebron", "WrongPassword1!");
 
         assertFalse(result.isSuccess());
         assertEquals("Incorrect password.", result.getMessage());
+        assertNull(AuthSession.getCurrentUser());
     }
 
     private static class FakeUserDAO implements IUserDAO {
@@ -153,7 +189,8 @@ class DatabaseAuthServiceTest {
         @Override
         public boolean validateLogin(String username, String password) {
             for (User user : users) {
-                if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                if (user.getUsername().equals(username)
+                        && PasswordUtil.verifyPassword(password, user.getPassword())) {
                     return true;
                 }
             }
