@@ -47,8 +47,8 @@ public class CameraView extends StackPane {
     private static final Set<Integer> LEFT_LANDMARKS  = Set.of(1,2,3,7,9,11,13,15,17,19,21,23,25,27,29,31);
     private static final Set<Integer> RIGHT_LANDMARKS = Set.of(4,5,6,8,10,12,14,16,18,20,22,24,26,28,30,32);
 
-    // landmarks to highlight in blue - matches the Python prototype defaults
-    private static final Set<Integer> HIGHLIGHT_POINTS = Set.of(3, 9);
+    // landmarks to highlight in blue
+    private static final Set<Integer> HIGHLIGHT_POINTS = Set.of(0);
 
     private final ImageView view = new ImageView();
     private final Label status = new Label();
