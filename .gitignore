@@ -33,3 +33,6 @@ bin/
 target/
 users.db
 .idea/shelf/
+
+### API Key (.env file) ###
+.env
