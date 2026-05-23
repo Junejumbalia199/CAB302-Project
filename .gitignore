@@ -30,9 +30,9 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### API Key (.env file) ###
+.env
+
 target/
 users.db
 .idea/shelf/
-
-### API Key (.env file) ###
-.env
