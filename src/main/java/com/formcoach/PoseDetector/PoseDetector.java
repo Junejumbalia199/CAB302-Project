@@ -13,18 +13,35 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Bridges the JavaFX camera feed to the Python MediaPipe pose-detection server.
+ * Frames submitted via {@link #submitFrame} are sent over a length-prefixed TCP socket
+ * to {@code scripts/main.py} running on port 5001; landmark JSON is returned and
+ * delivered to the registered {@link LandmarkListener} on the JavaFX thread.
+ */
 public class PoseDetector {
 
-    // flip this to true to enable the skeleton overlay and console landmark output
+    /**
+     * When {@code true}, the skeleton wireframe overlay is drawn on the camera feed
+     * and raw landmark data is printed to the console. Set to {@code false} for
+     * production builds.
+     */
     public static boolean DEBUG_MODE = true;
 
     private static final String HOST = "127.0.0.1";
     private static final int PORT = 5001;
 
-    // called on the JavaFX thread each time new landmarks arrive
+    /**
+     * Callback interface notified on the JavaFX thread each time the Python server
+     * returns a new set of pose landmarks.
+     */
     public interface LandmarkListener {
-        // landmarks index matches MediaPipe's 0-32 landmark numbering
-        // each float[] is {x, y, z, visibility} in normalised 0.0-1.0 coords
+        /**
+         * Called with the latest pose landmark data.
+         * Landmark indices match MediaPipe's 0-32 numbering; each {@code float[]} is
+         * {@code {x, y, z, visibility}} in normalised 0.0–1.0 coordinates.
+         * @param landmarks list of 33 landmark arrays
+         */
         void onLandmarks(List<float[]> landmarks);
     }
 
@@ -38,10 +55,17 @@ public class PoseDetector {
     // only the latest frame is kept - older ones are dropped if the server is slow
     private final AtomicReference<BufferedImage> pendingFrame = new AtomicReference<>();
 
+    /**
+     * Constructs a new PoseDetector that will notify the given listener each time landmarks arrive.
+     * @param listener the callback to invoke with fresh landmark data on the JavaFX thread
+     */
     public PoseDetector(LandmarkListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Starts the background worker thread that connects to the Python server and processes frames.
+     */
     public void start() {
         running = true;
         workerThread = new Thread(this::workerLoop, "pose-detector");
@@ -49,11 +73,18 @@ public class PoseDetector {
         workerThread.start();
     }
 
-    // hand a camera frame to the detector - safe to call from any thread
+    /**
+     * Submits a camera frame for pose detection. Safe to call from any thread.
+     * Only the most recent frame is retained; older frames are dropped if the server is busy.
+     * @param frame the JPEG-encodable image frame to analyse
+     */
     public void submitFrame(BufferedImage frame) {
         pendingFrame.set(frame);
     }
 
+    /**
+     * Stops the worker thread and closes the socket connection to the Python server.
+     */
     public void stop() {
         running = false;
         if (workerThread != null) {

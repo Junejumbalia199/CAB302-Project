@@ -18,6 +18,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * JavaFX screen that displays a paginated grid of available exercises.
+ * Users browse exercise cards and click Select to begin the tutorial flow.
+ * Navigation buttons are wired externally by {@link com.formcoach.Navigator}.
+ */
 public class ExerciseSelectionPage {
     
     private static final int PAGE_SIZE = 3;
@@ -75,6 +80,13 @@ public class ExerciseSelectionPage {
 
     private int currentPageIndex = 0;
 
+    /**
+     * Constructs a new ExerciseSelectionPage.
+     * @param stage     the primary application stage
+     * @param onBack    callback invoked when the user navigates back to the landing page
+     * @param onProfile callback invoked when the user navigates to the profile page
+     * @param onHistory callback invoked when the user navigates to the history page
+     */
     public ExerciseSelectionPage(Stage stage, Runnable onBack, Runnable onProfile, Runnable onHistory) {
         this.stage = stage;
         this.onBack = onBack;
@@ -82,6 +94,7 @@ public class ExerciseSelectionPage {
         this.onHistory = onHistory;
     }
 
+    /** Builds and displays the exercise selection screen on the primary stage. */
     public void show() {
         Scene scene = createScene();
         stage.setScene(scene);

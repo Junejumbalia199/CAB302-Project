@@ -40,9 +40,10 @@ public class ExerciseVideoView extends StackPane {
     private Label       timeLabel;
 
     /**
-     * @param exerciseName Drives header title and video file resolution.
-     * @param onBack       Callback for closing the modal (returns to selection).
-     * @param onStartLive  Callback for proceeding to the live session.
+     * Constructs a new ExerciseVideoView for the given exercise.
+     * @param exerciseName drives header title and video file resolution
+     * @param onBack       callback for closing the modal (returns to selection)
+     * @param onStartLive  callback for proceeding to the live session
      */
     public ExerciseVideoView(String exerciseName, Runnable onBack, Runnable onStartLive) {
         this.exerciseName = exerciseName == null ? "Exercise" : exerciseName;

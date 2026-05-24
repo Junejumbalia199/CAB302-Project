@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>FormCoach API Overview</title></head>
+<body>
+
+<h2>FormCoach &mdash; AI-Powered Exercise Form Coach</h2>
+
+<p>
+  FormCoach is a Java/JavaFX desktop application that uses computer-vision pose
+  estimation to give real-time feedback on exercise technique. A Python
+  MediaPipe server analyses webcam frames and streams 33-point skeleton
+  landmarks back to the Java frontend, which scores form quality and counts
+  repetitions for each supported exercise.
+</p>
+
+<h3>Supported Exercises</h3>
+<ul>
+  <li><b>Push-ups</b> &mdash; upper-body pushing movement</li>
+  <li><b>Sit-ups</b> &mdash; core flexion movement</li>
+  <li><b>Squats</b> &mdash; lower-body compound movement</li>
+</ul>
+
+<h3>Package Overview</h3>
+
+<table border="1" cellspacing="0" cellpadding="4">
+  <tr><th>Package</th><th>Responsibility</th></tr>
+  <tr>
+    <td>{@link com.formcoach}</td>
+    <td>Application entry point ({@link com.formcoach.Main}) and the central
+        navigation hub ({@link com.formcoach.Navigator}) that wires all screens
+        together.</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.auth}</td>
+    <td>User authentication: login, registration, PBKDF2 password hashing,
+        SQLite persistence, and the in-memory {@link com.formcoach.auth.AuthSession}
+        singleton.</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.camera}</td>
+    <td>Webcam capture and display via the Sarxos WebcamCapture library.
+        {@link com.formcoach.camera.CameraView} grabs frames and exposes a
+        landmark callback used by the pose pipeline.</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.chatbot}</td>
+    <td>Floating AI chat assistant powered by the Google Gemini API.
+        Provides exercise and form advice within the app.</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.poseanalysis}</td>
+    <td>Core form-scoring engine.
+        {@link com.formcoach.PoseScorer.PoseScorer} computes 7 joint angles from
+        raw landmarks and finds the best-matching reference pose from the CSV
+        dataset ({@link com.formcoach.PoseReference.PoseReference}).</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.repcount}</td>
+    <td>Repetition counting via a two-phase angle-threshold state machine
+        ({@link com.formcoach.repcount.RepetitionCounter}). Works for Push-ups,
+        Squats, and Sit-ups without additional configuration.</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.textoutputgen}</td>
+    <td>Converts raw pose-comparison data into human-readable feedback strings
+        and a 0&ndash;10 form score
+        ({@link com.formcoach.textoutputgen.textoutputgen}).</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.runexercise}</td>
+    <td>Live exercise session screen. Orchestrates the camera, pose scorer,
+        rep counter, and feedback text area in a single JavaFX view.</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.selection}</td>
+    <td>Paginated exercise-selection screen where users browse and choose
+        an exercise before entering the tutorial or live session.</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.videomodal}</td>
+    <td>Pre-session tutorial video player.
+        {@link com.formcoach.videomodal.VideoResolver} maps exercise names to
+        bundled MP4 files; {@link com.formcoach.videomodal.ExerciseVideoView}
+        renders the playback UI.</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.historypage}</td>
+    <td>Workout history screen displaying past session records.</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.profile}</td>
+    <td>User profile screen for viewing and updating account details.</td>
+  </tr>
+  <tr>
+    <td>{@link com.formcoach.landingpage}</td>
+    <td>Marketing / hero landing page shown on first launch.</td>
+  </tr>
+  <tr>
+    <td>{@link kaggle}</td>
+    <td>Kaggle dataset integration. Downloads and caches the exercise CSV on
+        first run; provides {@link kaggle.ExerciseDataset} records to other
+        parts of the app.</td>
+  </tr>
+</table>
+
+<h3>Architecture</h3>
+
+<pre>
+  Main (JavaFX Application)
+    +-- Navigator                   &lt;- single hub, swaps scenes on the Stage
+         +-- landingpage
+         +-- AuthPage               &lt;- login / register
+         +-- ExerciseSelectionPage  &lt;- browse exercises
+         +-- ExerciseVideoView      &lt;- tutorial video preview
+         \-- runexercise            &lt;- live session
+              +-- CameraView        &lt;- webcam + PoseDetector bridge
+              +-- PoseScorer        &lt;- angle computation + reference matching
+              +-- RepetitionCounter &lt;- state-machine rep counting
+              \-- textoutputgen     &lt;- form feedback text + score
+</pre>
+
+<h3>Python Pose Server</h3>
+
+<p>
+  {@link com.formcoach.PoseDetector.PoseDetector} connects to a local Python
+  process (<code>scripts/main.py</code>) over a length-prefixed TCP socket on
+  port 5001. JPEG frames are sent to Python; MediaPipe landmark JSON is
+  returned. {@link com.formcoach.Main} starts and stops the server
+  automatically alongside the JavaFX lifecycle.
+</p>
+
+</body>
+</html>

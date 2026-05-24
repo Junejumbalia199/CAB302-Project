@@ -4,7 +4,16 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Converts raw pose-comparison data into human-readable feedback and a 0–10 form score.
+ * Call {@link #output} each feedback interval with the user's and ideal pose coordinates;
+ * the returned {@link PoseResult} contains a summary string, per-joint movement hints,
+ * and the numeric score ready for display.
+ */
 public class textoutputgen {
+
+    /** Constructs a new textoutputgen instance with default feedback strings and tolerances. */
+    public textoutputgen() {}
 
     // =========================================================
     // CONFIG
@@ -39,17 +48,36 @@ public class textoutputgen {
     private final Double[] situpTols = new Double[]{0.35, 0.15, 0.05, 0.0};
     private final Double[] squatTols = new Double[]{0.35, 0.15, 0.05, 0.0};
     private final String[] poseLandmarkNames = new String[]{"nose", "left eye (inner)", "left eye", "left eye (outer)", "right eye (inner)", "right eye", "right eye (outer)", "left ear", "right ear", "mouth (left)", "mouth (right)", "left shoulder", "right shoulder", "left elbow", "right elbow", "left wrist", "right wrist", "left pinky", "right pinky", "left index", "right index", "left thumb", "right thumb", "left hip", "right hip", "left knee", "right knee", "left ankle", "right ankle", "left heel", "right heel", "left foot index", "right foot index"};
+    /** When {@code true}, no random encouragement suffix is appended to feedback. */
     public Boolean disableFlavourText = true;
+    /** Feedback shown when form is dangerously wrong (severity 0). */
     public String VBadText = "WARNING. Stop immediately. You may injure yourself.";
+    /** Feedback shown when form needs significant correction (severity 1). */
     public String BadText = "Your form isn't quite right. Here's where you need to adjust.";
+    /** Feedback shown when form is acceptable but improvable (severity 2). */
     public String GoodText = "Your form is pretty good, but you can adjust a bit.";
+    /** Feedback shown when form is perfect (severity 3). */
     public String PerfectText = "Your form is perfect!";
+    /** Pool of random encouragement messages appended when flavour text is enabled. */
     public String[] FlavourText = new String[]{"Good job!", "Keep it up!", "Great work!", "Keep on improving!", "Don't give up!"};
 
     // =========================================================
     // The main output method to get the results
     // =========================================================
 
+    /**
+     * Scores the user's pose against the ideal pose and produces feedback text.
+     * @param userX        x-coordinates of the user's 33 pose landmarks
+     * @param userY        y-coordinates of the user's 33 pose landmarks
+     * @param userZ        z-coordinates of the user's 33 pose landmarks
+     * @param idealX       x-coordinates of the reference pose's 33 landmarks
+     * @param idealY       y-coordinates of the reference pose's 33 landmarks
+     * @param idealZ       z-coordinates of the reference pose's 33 landmarks
+     * @param exerciseType one of {@code "Pushup"}, {@code "Situp"}, or {@code "Squat"}
+     * @return a {@link PoseResult} containing summary text, movement feedback, and a 0–10 score
+     * @throws PoseValidationException if any input array contains null or NaN values,
+     *                                 or if {@code exerciseType} is not recognised
+     */
     public PoseResult output(Double[] userX, Double[] userY, Double[] userZ, Double[] idealX, Double[] idealY, Double[] idealZ, String exerciseType) {
 
         validate(userX, userY, userZ, idealX, idealY, idealZ);
@@ -243,6 +271,10 @@ public class textoutputgen {
     // Print out pose result object in correct format
     // =========================================================
 
+    /**
+     * Prints a {@link PoseResult} to standard output in a human-readable format.
+     * @param result the result to print; a null-safe message is shown if {@code result} is null
+     */
     public void printPoseResult(PoseResult result) {
 
         if (result == null) {
@@ -281,6 +313,15 @@ public class textoutputgen {
         int worstTol = 3;
     }
 
+    /**
+     * Immutable result of a single pose evaluation.
+     * @param summaryText      top-level feedback string describing overall form quality
+     * @param movementFeedback per-joint correction hints (may be empty if form is good)
+     * @param score            numeric form score in the range 0.0–10.0
+     * @param severity         0 = very bad, 1 = bad, 2 = good, 3 = perfect
+     * @param flavourText      optional encouragement suffix, or {@code null} if disabled
+     * @param valid            {@code true} if the result is usable; {@code false} on error
+     */
     public record PoseResult(String summaryText, List<String> movementFeedback, double score, int severity,
                              String flavourText, boolean valid) {
 

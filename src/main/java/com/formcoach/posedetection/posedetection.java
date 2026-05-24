@@ -23,11 +23,17 @@ public class posedetection {
     private final Stage stage;
     private final Runnable onBack;
 
+    /**
+     * Constructs a new posedetection screen.
+     * @param stage  the primary application stage
+     * @param onBack callback invoked when the user navigates back
+     */
     public posedetection(Stage stage, Runnable onBack) {
         this.stage  = stage;
         this.onBack = onBack;
     }
 
+    /** Builds and displays the standalone pose-detection screen on the primary stage. */
     public void show() {
         VBox root = new VBox(18);
         root.setPadding(new Insets(36));

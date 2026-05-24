@@ -12,6 +12,10 @@ import javafx.scene.image.ImageView;
 
 import java.net.URL;
 
+/**
+ * JavaFX screen that provides login and registration forms.
+ * Switches between login and register modes in-place without a scene change.
+ */
 public class AuthPage {
 
     private final Stage stage;
@@ -41,6 +45,15 @@ public class AuthPage {
     private Button submitButton;
     private Hyperlink switchLink;
 
+    /**
+     * Constructs a new AuthPage.
+     * @param stage         the primary application stage
+     * @param onBack        callback invoked when the user navigates back to the landing page
+     * @param onAuthSuccess callback invoked after a successful login or registration
+     * @param authService   the authentication service used to validate credentials
+     * @param onHistory     callback invoked when the user navigates to the history page
+     * @param onProfile     callback invoked when the user navigates to the profile page
+     */
     public AuthPage(Stage stage, Runnable onBack, Runnable onAuthSuccess, AuthService authService, Runnable onHistory, Runnable onProfile) {
         this.stage = stage;
         this.onBack = onBack;
@@ -50,6 +63,7 @@ public class AuthPage {
         this.onProfile = onProfile;
     }
 
+    /** Builds and displays the authentication screen on the primary stage. */
     public void show() {
         Scene scene = createScene();
         stage.setScene(scene);

@@ -1,3 +1,8 @@
+/**
+ * FormCoach application module.
+ * Declares all JavaFX, database, and third-party dependencies and exports
+ * the packages required by the JavaFX runtime and other modules.
+ */
 module com.formcoach {
     requires javafx.controls;
     requires javafx.fxml;

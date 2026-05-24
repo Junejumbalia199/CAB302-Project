@@ -24,6 +24,10 @@ public final class KaggleClient {
     private final HttpClient http;
     private final String     authHeader;
 
+    /**
+     * Constructs a new KaggleClient using the supplied credentials.
+     * @param cfg resolved Kaggle API credentials
+     */
     public KaggleClient(KaggleConfig cfg) {
         this.http = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
@@ -37,7 +41,12 @@ public final class KaggleClient {
 
     // ── search ────────────────────────────────────────────────────────────────
 
-    /** GET /datasets/list?search={query}. Returns raw JSON body. */
+    /**
+     * Searches for public datasets matching the given query string.
+     * @param query search term to pass to {@code GET /datasets/list}
+     * @return raw JSON response body from the Kaggle API
+     * @throws KaggleException if the HTTP request fails or the server returns a non-200 status
+     */
     public String searchDatasets(String query) throws KaggleException {
         String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8);
         HttpRequest req = baseRequest(BASE + "/datasets/list?search=" + encoded)
@@ -56,7 +65,15 @@ public final class KaggleClient {
 
     // ── download ──────────────────────────────────────────────────────────────
 
-    /** Downloads single file from dataset to target path. Returns target. */
+    /**
+     * Downloads a single file from a Kaggle dataset to the given local path.
+     * @param owner    Kaggle username of the dataset owner
+     * @param dataset  dataset slug (e.g. {@code "gym-exercise-data"})
+     * @param fileName name of the file to download within the dataset
+     * @param target   local path where the file should be saved
+     * @return the resolved local path ({@code target}) after successful download
+     * @throws KaggleException if the download fails or the server returns a non-200 status
+     */
     public Path downloadFile(String owner, String dataset, String fileName, Path target)
             throws KaggleException {
         // Create parent dir; ofFile fails opaquely otherwise.

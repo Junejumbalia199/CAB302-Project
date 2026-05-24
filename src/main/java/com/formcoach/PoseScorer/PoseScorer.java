@@ -13,12 +13,19 @@ public final class PoseScorer {
     // per-angle error threshold in degrees - anything beyond this scores 0 for that joint
     private static final double MAX_ANGLE_ERROR_DEG = 45.0;
 
-    // returned when scoring can't produce a result
+    /** Sentinel returned when scoring cannot produce a valid result. Always check {@link ScorerResult#isValid()}. */
     public static final ScorerResult INVALID = new ScorerResult(-1, null, null, null, null);
 
     private final PoseReference reference;
     private final String textOutputType;
 
+    // cached angles from the most recent score() call — used by RepetitionCounter
+    private double[] lastAngles;
+
+    /**
+     * Constructs a PoseScorer and loads reference pose data for the given exercise.
+     * @param exerciseName the display name of the exercise (e.g. {@code "Push-ups"})
+     */
     public PoseScorer(String exerciseName) {
         reference = new PoseReference(exerciseName);
         textOutputType = toTextOutputType(exerciseName);
@@ -27,9 +34,10 @@ public final class PoseScorer {
     }
 
     /**
-     * Finds the best-matching reference pose for the given landmarks and returns a
-     * ScorerResult. Check isValid() before using the result. Returns INVALID if
-     * landmarks are incomplete or the exercise isn't supported.
+     * Finds the best-matching reference pose for the given landmarks and returns a ScorerResult.
+     * Check {@link ScorerResult#isValid()} before using the result.
+     * @param landmarks the 33-point landmark list from MediaPipe (each element is {x, y, z, visibility})
+     * @return the best-matching {@link ScorerResult}, or {@link #INVALID} if landmarks are incomplete
      */
     public ScorerResult score(List<float[]> landmarks) {
         if (landmarks == null || landmarks.size() < 33) return INVALID;
@@ -37,6 +45,7 @@ public final class PoseScorer {
 
         double[] live = computeAngles(landmarks);
         if (live == null) return INVALID;
+        lastAngles = live;
 
         // find the reference row with the highest angle similarity score
         double bestScore = -1;
@@ -53,8 +62,19 @@ public final class PoseScorer {
         return new ScorerResult(bestScore, bestRow.x(), bestRow.y(), bestRow.z(), textOutputType);
     }
 
-    // holds the result of one scoring pass - use isValid() before accessing fields
+    /**
+     * Holds the result of one scoring pass. Use {@link #isValid()} before accessing fields.
+     * @param score        similarity score in the range 0.0 (no match) to 1.0 (perfect match)
+     * @param idealX       x-coordinates of the best-matching reference pose landmarks
+     * @param idealY       y-coordinates of the best-matching reference pose landmarks
+     * @param idealZ       z-coordinates of the best-matching reference pose landmarks
+     * @param exerciseType exercise type string expected by {@code textoutputgen}
+     */
     public record ScorerResult(double score, Double[] idealX, Double[] idealY, Double[] idealZ, String exerciseType) {
+        /**
+         * Returns {@code true} if this result contains valid scoring data.
+         * @return {@code true} if score is non-negative and all coordinate arrays are present
+         */
         public boolean isValid() {
             return score >= 0 && idealX != null && exerciseType != null;
         }
@@ -71,8 +91,23 @@ public final class PoseScorer {
         };
     }
 
-    // computes the 7 joint angles that match the dataset's angle columns
-    private static double[] computeAngles(List<float[]> lm) {
+    /**
+     * Returns the 7 joint angles computed during the most recent {@link #score} call,
+     * or {@code null} if {@code score()} has not been called yet or returned {@link #INVALID}.
+     * Indices: 0=right elbow, 1=left elbow, 2=knee, 3=right hip-knee-ankle,
+     * 4=left hip-knee-ankle, 5=right wrist-elbow-shoulder, 6=left wrist-elbow-shoulder.
+     * @return 7-element angle array in degrees, or {@code null}
+     */
+    public double[] getLastAngles() {
+        return lastAngles;
+    }
+
+    /**
+     * Computes the 7 joint angles from a raw landmark list.
+     * @param lm the 33-point landmark list from MediaPipe
+     * @return 7-element angle array in degrees, or {@code null} if landmarks are out of bounds
+     */
+    public static double[] computeAngles(List<float[]> lm) {
         try {
             double[] a = new double[7];
 

@@ -3,6 +3,7 @@ package com.formcoach.runexercise;
 import com.formcoach.camera.CameraView;
 import com.formcoach.chatbot.chatbot;
 import com.formcoach.poseanalysis.PoseScorer;
+import com.formcoach.repcount.RepetitionCounter;
 import com.formcoach.textoutputgen.PoseValidationException;
 import com.formcoach.textoutputgen.textoutputgen;
 import javafx.application.Platform;
@@ -34,6 +35,11 @@ import java.util.Set;
  * back. When the camera / MediaPipe bridge lands, it slots into the
  * dark rectangle below.
  */
+/**
+ * Live exercise session screen.
+ * Orchestrates the webcam feed, pose scoring, repetition counting, and form-feedback
+ * text area for a single exercise session. Click the camera area to start or stop capture.
+ */
 public class runexercise {
 
     // how often the feedback text updates, in seconds - change this to adjust the rate
@@ -49,12 +55,23 @@ public class runexercise {
     // tracks when feedback was last written so we can throttle it
     private long lastFeedbackTime = 0;
 
+    // rep counter — initialised when a scoreable exercise is selected
+    private RepetitionCounter repCounter;
+    private Label repCountLabel;
+
+    /**
+     * Constructs a new runexercise screen for the given exercise.
+     * @param stage        the primary application stage
+     * @param exerciseName the display name of the exercise (e.g. {@code "Push-ups"})
+     * @param onBack       callback invoked when the user navigates back to exercise selection
+     */
     public runexercise(Stage stage, String exerciseName, Runnable onBack) {
         this.stage        = stage;
         this.exerciseName = exerciseName == null ? "Exercise" : exerciseName;
         this.onBack       = onBack;
     }
 
+    /** Builds and displays the live exercise session screen on the primary stage. */
     public void show() {
         VBox root = new VBox(18);
         root.setPadding(new Insets(36));
@@ -80,11 +97,23 @@ public class runexercise {
         if (scoredExercises.contains(exerciseName)) {
             PoseScorer scorer = new PoseScorer(exerciseName);
             textoutputgen gen = new textoutputgen();
+            repCounter = new RepetitionCounter(exerciseName);
             cam.setOnLandmarks(landmarks -> {
                 if (!camRunning[0]) return; // skip processing if paused
 
                 // existing scoring code
                 PoseScorer.ScorerResult match = scorer.score(landmarks);
+
+                // update rep counter every frame (runs independently of feedback throttle)
+                double[] angles = scorer.getLastAngles();
+                if (angles != null) {
+                    boolean repDone = repCounter.update(angles);
+                    if (repDone) {
+                        final int count = repCounter.getRepCount();
+                        Platform.runLater(() -> repCountLabel.setText("Reps: " + count));
+                    }
+                }
+
                 if (!match.isValid()) return;
 
                 long now = System.currentTimeMillis();
@@ -135,6 +164,7 @@ public class runexercise {
         back.getStyleClass().add("btn-primary");
         back.setOnAction(e -> {
             cam.stop();
+            if (repCounter != null) repCounter.reset();
             if (onBack != null) onBack.run();
         });
 
@@ -167,12 +197,20 @@ public class runexercise {
         hint.setStyle("-fx-font-size: 13px; -fx-text-fill: #6b7280;");
         VBox.setMargin(hint, new Insets(0, 100, 0, 100));
 
+        // rep counter label — only shown for scoreable exercises
+        repCountLabel = new Label("Reps: 0");
+        repCountLabel.setStyle(
+                "-fx-font-size: 28px; -fx-font-weight: 800; -fx-text-fill: #1f3a5f;"
+                + " -fx-background-color: #e8f0fe; -fx-padding: 8 24; -fx-background-radius: 12;");
+        repCountLabel.setVisible(repCounter != null);  // hidden for unsupported exercises
+        VBox.setMargin(repCountLabel, new Insets(0, 100, 0, 100));
+
         outputArea = new TextArea();
         outputArea.setEditable(false); // Prevent user editing
         outputArea.setWrapText(true);  // Wrap long lines
         VBox.setMargin(outputArea, new Insets(0, 100, 0, 100));
 
-        root.getChildren().addAll(header, feed, hint, outputArea);
+        root.getChildren().addAll(header, feed, repCountLabel, hint, outputArea);
 
         Button helpButton = createHelpButton();
         StackPane chatbotWidget = createChatbotWidget();
@@ -215,7 +253,10 @@ public class runexercise {
         }
     }
 
-    // append output to text area
+    /**
+     * Appends a line of text to the feedback output area. Safe to call from any thread.
+     * @param text the text to append
+     */
     public void appendOutput(String text) {
         Platform.runLater(() -> {
             outputArea.appendText(text + "\n");

@@ -30,15 +30,29 @@ public final class PoseReference {
     // one row per matching reference frame, angles and xyz aligned by index
     private final List<ReferenceRow> rows;
 
+    /**
+     * Loads reference pose frames for the given exercise from bundled CSV data.
+     * @param exerciseName display name of the exercise (e.g. {@code "Push-ups"})
+     */
     public PoseReference(String exerciseName) {
         rows = Collections.unmodifiableList(load(exerciseName));
     }
 
+    /**
+     * Returns the loaded reference rows for this exercise.
+     * @return unmodifiable list of reference pose frames; empty if exercise not recognised
+     */
     public List<ReferenceRow> getRows() {
         return rows;
     }
 
-    // a single reference pose frame - angles for matching, xyz for feedback
+    /**
+     * A single reference pose frame.
+     * @param angles 7-element joint-angle array used for pose matching
+     * @param x      normalised x-coordinates for all 33 landmarks
+     * @param y      normalised y-coordinates for all 33 landmarks
+     * @param z      normalised z-coordinates for all 33 landmarks
+     */
     public record ReferenceRow(double[] angles, Double[] x, Double[] y, Double[] z) {}
 
     private static List<ReferenceRow> load(String exerciseName) {

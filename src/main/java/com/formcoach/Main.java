@@ -12,7 +12,15 @@ import kaggle.ExerciseRepository;
 import java.io.File;
 import java.util.List;
 
+/**
+ * JavaFX application entry point for FormCoach.
+ * Starts the Python MediaPipe pose server as a child process, opens the landing page via
+ * {@link Navigator}, and warms up the Kaggle exercise dataset on a background thread.
+ */
 public class Main extends Application {
+
+    /** Default constructor required by the JavaFX launcher. */
+    public Main() {}
 
     // One repo alive for the whole app lifetime. After the first load the
     // parsed rows sit in memory and any screen that wants them can call
@@ -22,10 +30,19 @@ public class Main extends Application {
     // the running Python server process, kept so we can kill it on exit
     private static Process poseServerProcess;
 
+    /**
+     * Returns the shared {@link ExerciseRepository} instance loaded at startup.
+     * @return the application-wide exercise repository
+     */
     public static ExerciseRepository exercises() {
         return exerciseRepo;
     }
 
+    /**
+     * JavaFX lifecycle method — called after the toolkit is initialised.
+     * Wires navigation, starts the pose server, and kicks off dataset pre-loading.
+     * @param primaryStage the primary window provided by the JavaFX runtime
+     */
     @Override
     public void start(Stage primaryStage) {
         startPoseServer();
@@ -175,8 +192,11 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Application entry point — delegates to JavaFX {@link Application#launch}.
+     * @param args command-line arguments (not used)
+     */
     public static void main(String[] args) {
-        // This launches the JavaFX application
         launch(args);
     }
 }
