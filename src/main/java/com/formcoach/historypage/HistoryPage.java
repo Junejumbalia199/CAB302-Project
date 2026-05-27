@@ -17,14 +17,22 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 
+/**
+ * JavaFX screen that displays the user's past workout session history.
+ */
 public class HistoryPage {
 
     private final Stage stage;
 
+    /**
+     * Constructs a new HistoryPage.
+     * @param stage the primary application stage
+     */
     public HistoryPage(Stage stage) {
         this.stage = stage;
     }
 
+    /** Builds and displays the history screen on the primary stage. */
     public void show() {
         Scene scene = createScene();
         stage.setScene(scene);

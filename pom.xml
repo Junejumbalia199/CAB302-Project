@@ -115,6 +115,12 @@
                 <configuration>
                     <destDir>javadoc</destDir>
                     <reportOutputDirectory>${project.build.directory}/docs</reportOutputDirectory>
+                    <overview>${project.basedir}/src/main/javadoc/overview.html</overview>
+                    <windowTitle>FormCoach API</windowTitle>
+                    <doctitle>FormCoach API Documentation</doctitle>
+                    <bottom>FormCoach — CAB302 Project</bottom>
+                    <source>21</source>
+                    <failOnError>false</failOnError>
                 </configuration>
             </plugin>
 

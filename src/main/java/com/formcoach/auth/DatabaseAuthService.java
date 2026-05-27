@@ -1,17 +1,30 @@
 package com.formcoach.auth;
 
+/**
+ * Database-backed implementation of {@link AuthService}.
+ * Delegates persistence to an {@link IUserDAO} and uses {@link PasswordUtil}
+ * for PBKDF2 password hashing and verification.
+ */
 public class DatabaseAuthService implements AuthService {
 
     private final IUserDAO userDAO;
 
+    /**
+     * Constructs a DatabaseAuthService backed by the default {@link SqliteUserDAO}.
+     */
     public DatabaseAuthService() {
         this.userDAO = new SqliteUserDAO();
     }
 
+    /**
+     * Constructs a DatabaseAuthService backed by the supplied DAO (useful for testing).
+     * @param userDAO the data access object to use for user persistence
+     */
     public DatabaseAuthService(IUserDAO userDAO) {
         this.userDAO = userDAO;
     }
 
+    /** {@inheritDoc} */
     @Override
     public AuthResult login(String usernameOrEmail, String password) {
         User user;
@@ -34,6 +47,7 @@ public class DatabaseAuthService implements AuthService {
         return AuthResult.success("Login successful.");
     }
 
+    /** {@inheritDoc} */
     @Override
     public AuthResult register(UserRegistrationRequest request) {
         if (userDAO.getUserByUsername(request.getUsername()) != null) {

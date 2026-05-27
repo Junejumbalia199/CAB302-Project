@@ -16,6 +16,9 @@ import java.util.List;
  */
 public final class ExerciseRepository {
 
+    /** Constructs a new ExerciseRepository. Call {@link #ensureLoaded()} before accessing data. */
+    public ExerciseRepository() {}
+
     private static final String OWNER     = "niharika41298";
     private static final String DATASET   = "gym-exercise-data";
     private static final String FILE_NAME = "megaGymDataset.csv";
@@ -24,7 +27,12 @@ public final class ExerciseRepository {
 
     private List<ExerciseDataset> cache;
 
-    /** Downloads (if needed) and parses the CSV. Idempotent and thread-safe. */
+    /**
+     * Downloads (if needed) and parses the exercise CSV. Idempotent and thread-safe.
+     * Subsequent calls return the cached list without hitting the network again.
+     * @return unmodifiable list of all valid exercise rows
+     * @throws KaggleException if the download fails or the CSV cannot be parsed
+     */
     public synchronized List<ExerciseDataset> ensureLoaded() throws KaggleException {
         if (cache != null) return cache;
 
@@ -42,7 +50,10 @@ public final class ExerciseRepository {
         return cache;
     }
 
-    /** Loaded rows, or empty list if ensureLoaded() hasn't run. */
+    /**
+     * Returns the loaded exercise rows, or an empty list if {@link #ensureLoaded()} has not yet run.
+     * @return loaded rows, or empty list if not yet loaded
+     */
     public List<ExerciseDataset> all() {
         return cache == null ? List.of() : cache;
     }

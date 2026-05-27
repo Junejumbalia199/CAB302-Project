@@ -34,10 +34,24 @@ public final class KaggleConfig {
         this.key      = key;
     }
 
+    /**
+     * Returns the Kaggle account username.
+     * @return username string
+     */
     public String username() { return username; }
+
+    /**
+     * Returns the Kaggle API key.
+     * @return API key string
+     */
     public String key()      { return key; }
 
-    /** Returns resolved credentials. Throws KaggleException if none found. */
+    /**
+     * Resolves and returns Kaggle credentials. Checks environment variables first,
+     * then falls back to {@code kaggle.json} on disk.
+     * @return resolved credentials
+     * @throws KaggleException if no credentials can be found or the JSON is malformed
+     */
     public static KaggleConfig load() throws KaggleException {
         // Env vars first.
         String envUser = System.getenv("KAGGLE_USERNAME");

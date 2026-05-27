@@ -36,3 +36,4 @@ bin/
 target/
 users.db
 .idea/shelf/
+docs/

@@ -12,8 +12,16 @@ import javafx.scene.text.TextFlow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+/**
+ * Hero / marketing landing page shown when the application first launches.
+ * Extends {@link javafx.scene.layout.StackPane} so it can be placed directly into a scene.
+ * Navigation buttons are wired externally by {@link com.formcoach.Navigator}.
+ */
 public class landingpage extends StackPane {
 
+    /**
+     * Constructs and fully renders the landing page UI.
+     */
     public landingpage() {
         this.getStylesheets().add(getClass().getResource("/styles/landingpage.css").toExternalForm());
 

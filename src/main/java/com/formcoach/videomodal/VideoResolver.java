@@ -24,7 +24,11 @@ public final class VideoResolver {
 
     private VideoResolver() { /* no-op */ }
 
-    /** Resolve a video URL for the given exercise name. Never returns null. */
+    /**
+     * Resolves a video URL for the given exercise name. Never returns null.
+     * @param exerciseName display name of the exercise (e.g. {@code "Push-ups"})
+     * @return a URL string pointing to the best available video for this exercise
+     */
     public static String resolve(String exerciseName) {
         // First: try a dedicated file under /videos/.
         String slug = slugify(exerciseName);

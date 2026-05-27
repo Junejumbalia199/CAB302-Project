@@ -4,9 +4,18 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * SQLite-backed implementation of {@link IUserDAO}.
+ * Creates the {@code users} table on first use and delegates all persistence
+ * through the shared {@link SqliteConnection} singleton.
+ */
 public class SqliteUserDAO implements IUserDAO {
     private Connection connection;
 
+    /**
+     * Constructs a new SqliteUserDAO, obtaining the shared connection and
+     * creating the users table if it does not already exist.
+     */
     public SqliteUserDAO() {
         connection = SqliteConnection.getInstance();
         createTable();

@@ -8,6 +8,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -61,7 +62,11 @@ jobs:
       - name: Generate Javadoc
         run: mvn javadoc:javadoc
 
+      - name: Add .nojekyll
+        run: touch target/docs/javadoc/.nojekyll
+
       - name: Publish Javadoc
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: target/docs/javadoc
+          single-commit: true

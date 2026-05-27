@@ -69,6 +69,11 @@ public class CameraView extends StackPane {
     // optional callback fired on the JavaFX thread each time landmarks arrive
     private Consumer<List<float[]>> landmarkCallback;
 
+    /**
+     * Constructs a CameraView with the given display dimensions.
+     * @param width  preferred width of the feed pane in pixels
+     * @param height preferred height of the feed pane in pixels
+     */
     public CameraView(double width, double height) {
         setStyle("-fx-background-color: #111827; -fx-background-radius: 16;");
         setMinSize(width, height);
@@ -92,6 +97,7 @@ public class CameraView extends StackPane {
      * Registers a callback that fires on the JavaFX thread each time a new set
      * of landmarks arrives from the pose server. Call this before start() so the
      * pose detector gets launched. Passing null clears the callback.
+     * @param callback consumer receiving the list of 33 landmark float arrays, or null to clear
      */
     public void setOnLandmarks(Consumer<List<float[]>> callback) {
         this.landmarkCallback = callback;

@@ -20,7 +20,15 @@ import java.net.http.HttpResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
+/**
+ * Floating AI chat assistant powered by the Google Gemini API.
+ * Call {@link #showChatbot(javafx.stage.Window)} to display the popup over any window
+ * and {@link #hideChatbot()} to dismiss it.
+ */
 public class chatbot {
+
+    /** No-arg constructor. All interaction is via static methods. */
+    public chatbot() {}
 
     private static final Dotenv dotenv;
     static {
@@ -49,6 +57,10 @@ public class chatbot {
     private static TextField input;
     private static ScrollPane scrollPane;
 
+    /**
+     * Shows the chatbot popup anchored to the given window, creating it on first call.
+     * @param owner the window to anchor the popup to; may be {@code null}
+     */
     public static void showChatbot(Window owner) {
         if (chatPopup == null) {
             chatPopup = new Popup();
@@ -122,6 +134,7 @@ public class chatbot {
         chatPopup.show(owner);
     }
 
+    /** Hides the chatbot popup if it is currently visible. Safe to call when not shown. */
     public static void hideChatbot() {
         if (chatPopup != null) chatPopup.hide();
     }

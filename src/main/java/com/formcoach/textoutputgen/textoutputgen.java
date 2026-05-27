@@ -5,6 +5,12 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
+ * Converts raw pose-comparison data into human-readable feedback and a 0–10 form score.
+ * Call {@link #output} each feedback interval with the user's and ideal pose coordinates;
+ * the returned {@link PoseResult} contains a summary string, per-joint movement hints,
+ * and the numeric score ready for display.
+ */
+/**
  * Generates human-readable feedback from pose landmark comparisons.
  *
  * <p>This class compares a user's detected pose landmarks against an ideal pose
@@ -35,6 +41,9 @@ import java.util.concurrent.ThreadLocalRandom;
  * </ul>
  */
 public class textoutputgen {
+
+    /** Constructs a new textoutputgen instance with default feedback strings and tolerances. */
+    public textoutputgen() {}
 
     // =========================================================
     // CONFIG
@@ -102,6 +111,8 @@ public class textoutputgen {
      * Tolerance thresholds for squat analysis.
      */
     private final Double[] squatTols = new Double[]{0.35, 0.15, 0.05, 0.0};
+    private final String[] poseLandmarkNames = new String[]{"nose", "left eye (inner)", "left eye", "left eye (outer)", "right eye (inner)", "right eye", "right eye (outer)", "left ear", "right ear", "mouth (left)", "mouth (right)", "left shoulder", "right shoulder", "left elbow", "right elbow", "left wrist", "right wrist", "left pinky", "right pinky", "left index", "right index", "left thumb", "right thumb", "left hip", "right hip", "left knee", "right knee", "left ankle", "right ankle", "left heel", "right heel", "left foot index", "right foot index"};
+    /** When {@code true}, no random encouragement suffix is appended to feedback. */
 
     /**
      * Human-readable landmark names indexed by MediaPipe landmark ID.
@@ -127,26 +138,32 @@ public class textoutputgen {
      * If true, disables randomized encouragement text.
      */
     public Boolean disableFlavourText = true;
+    /** Feedback shown when form is dangerously wrong (severity 0). */
 
     /**
      * Summary message for severe pose errors.
      */
     public String VBadText = "WARNING. Stop immediately. You may injure yourself.";
+    /** Feedback shown when form needs significant correction (severity 1). */
 
     /**
      * Summary message for poor form.
      */
     public String BadText = "Your form isn't quite right. Here's where you need to adjust.";
+    /** Feedback shown when form is acceptable but improvable (severity 2). */
 
     /**
      * Summary message for acceptable form.
      */
     public String GoodText = "Your form is pretty good, but you can adjust a bit.";
+    /** Feedback shown when form is perfect (severity 3). */
 
     /**
      * Summary message for excellent form.
      */
     public String PerfectText = "Your form is perfect!";
+    /** Pool of random encouragement messages appended when flavour text is enabled. */
+    public String[] FlavourText = new String[]{"Good job!", "Keep it up!", "Great work!", "Keep on improving!", "Don't give up!"};
 
     /**
      * Optional randomized encouragement phrases.
@@ -163,6 +180,20 @@ public class textoutputgen {
     // The main output method to get the results
     // =========================================================
 
+    /**
+     * Scores the user's pose against the ideal pose and produces feedback text.
+     * @param userX        x-coordinates of the user's 33 pose landmarks
+     * @param userY        y-coordinates of the user's 33 pose landmarks
+     * @param userZ        z-coordinates of the user's 33 pose landmarks
+     * @param idealX       x-coordinates of the reference pose's 33 landmarks
+     * @param idealY       y-coordinates of the reference pose's 33 landmarks
+     * @param idealZ       z-coordinates of the reference pose's 33 landmarks
+     * @param exerciseType one of {@code "Pushup"}, {@code "Situp"}, or {@code "Squat"}
+     * @return a {@link PoseResult} containing summary text, movement feedback, and a 0–10 score
+     * @throws PoseValidationException if any input array contains null or NaN values,
+     *                                 or if {@code exerciseType} is not recognised
+     */
+    public PoseResult output(Double[] userX, Double[] userY, Double[] userZ, Double[] idealX, Double[] idealY, Double[] idealZ, String exerciseType) {
     /**
      * Compares a user's pose against an ideal pose and generates feedback.
      *
@@ -202,10 +233,7 @@ public class textoutputgen {
             case "Pushup" -> pushupTols;
             case "Situp" -> situpTols;
             case "Squat" -> squatTols;
-            default -> throw new PoseValidationException(
-                    "INVALID_EXERCISE",
-                    "Exercise type not recognized"
-            );
+            default -> throw new PoseValidationException("INVALID_EXERCISE", "Exercise type not recognized");
         };
 
         Map<String, MovementInfo> movementMap = new LinkedHashMap<>();
@@ -222,13 +250,9 @@ public class textoutputgen {
         ParseStats yStats = parse(uy, iy, tols, 'y', movementMap);
         ParseStats zStats = parse(uz, iz, tols, 'z', movementMap);
 
-        int worstTol = Math.min(
-                xStats.worstTol,
-                Math.min(yStats.worstTol, zStats.worstTol)
-        );
+        int worstTol = Math.min(xStats.worstTol, Math.min(yStats.worstTol, zStats.worstTol));
 
-        double averageScore =
-                (xStats.average() + yStats.average() + zStats.average()) / 3.0;
+        double averageScore = (xStats.average() + yStats.average() + zStats.average()) / 3.0;
 
         double score = Math.pow(averageScore, 1.35) * 10.0;
 
@@ -245,21 +269,9 @@ public class textoutputgen {
             String directions = String.join(" and ", info.directions);
 
             if (info.worstTol <= 1) {
-                movementOutput.add(
-                        MessageFormat.format(
-                                "Move your {0} {1}.",
-                                part,
-                                directions
-                        )
-                );
+                movementOutput.add(MessageFormat.format("Move your {0} {1}.", part, directions));
             } else if (info.worstTol == 2) {
-                movementOutput.add(
-                        MessageFormat.format(
-                                "Move your {0} {1} a little.",
-                                part,
-                                directions
-                        )
-                );
+                movementOutput.add(MessageFormat.format("Move your {0} {1} a little.", part, directions));
             }
         }
 
@@ -273,19 +285,10 @@ public class textoutputgen {
         String flavour = null;
 
         if (!Boolean.TRUE.equals(disableFlavourText)) {
-            flavour = FlavourText[
-                    ThreadLocalRandom.current().nextInt(FlavourText.length)
-                    ];
+            flavour = FlavourText[ThreadLocalRandom.current().nextInt(FlavourText.length)];
         }
 
-        return new PoseResult(
-                summary,
-                movementOutput,
-                score,
-                worstTol,
-                flavour,
-                true
-        );
+        return new PoseResult(summary, movementOutput, score, worstTol, flavour, true);
     }
 
     /**
@@ -299,19 +302,13 @@ public class textoutputgen {
         for (Double[] arr : arrays) {
 
             if (arr == null) {
-                throw new PoseValidationException(
-                        "NULL_INPUT",
-                        "Null pose array"
-                );
+                throw new PoseValidationException("NULL_INPUT", "Null pose array");
             }
 
             for (Double v : arr) {
 
                 if (v == null || Double.isNaN(v) || Double.isInfinite(v)) {
-                    throw new PoseValidationException(
-                            "INVALID_VALUE",
-                            "NaN detected in pose data"
-                    );
+                    throw new PoseValidationException("INVALID_VALUE", "NaN detected in pose data");
                 }
             }
         }
@@ -377,11 +374,8 @@ public class textoutputgen {
      * @return normalized body-part name
      */
     private String normalize(String name) {
-
         if (name.startsWith("left ")) return name.substring(5);
-
         if (name.startsWith("right ")) return name.substring(6);
-
         return name;
     }
 
@@ -427,25 +421,16 @@ public class textoutputgen {
 
         Double[] out = new Double[target.length];
 
-        double cx =
-                (x[LEFT_SHOULDER] + x[RIGHT_SHOULDER]) / 2.0;
+        double cx = (x[LEFT_SHOULDER] + x[RIGHT_SHOULDER]) / 2.0;
+        double cy = (y[LEFT_SHOULDER] + y[RIGHT_SHOULDER]) / 2.0;
 
-        double cy =
-                (y[LEFT_SHOULDER] + y[RIGHT_SHOULDER]) / 2.0;
-
-        double w = Math.sqrt(
-                Math.pow(x[LEFT_SHOULDER] - x[RIGHT_SHOULDER], 2)
-                        + Math.pow(y[LEFT_SHOULDER] - y[RIGHT_SHOULDER], 2)
-        );
+        double w = Math.sqrt(Math.pow(x[LEFT_SHOULDER] - x[RIGHT_SHOULDER], 2) + Math.pow(y[LEFT_SHOULDER] - y[RIGHT_SHOULDER], 2));
 
         if (w < 1e-6) w = 1e-6;
 
         for (int i = 0; i < target.length; i++) {
 
-            double v =
-                    (target == x)
-                            ? x[i] - cx
-                            : y[i] - cy;
+            double v = (target == x) ? x[i] - cx : y[i] - cy;
 
             out[i] = v / w;
         }
@@ -469,15 +454,11 @@ public class textoutputgen {
 
         Double[] out = new Double[z.length];
 
-        double w = Math.sqrt(
-                Math.pow(x[LEFT_SHOULDER] - x[RIGHT_SHOULDER], 2)
-                        + Math.pow(y[LEFT_SHOULDER] - y[RIGHT_SHOULDER], 2)
-        );
+        double w = Math.sqrt(Math.pow(x[LEFT_SHOULDER] - x[RIGHT_SHOULDER], 2) + Math.pow(y[LEFT_SHOULDER] - y[RIGHT_SHOULDER], 2));
 
         if (w < 1e-6) w = 1e-6;
 
-        double cz =
-                (z[LEFT_SHOULDER] + z[RIGHT_SHOULDER]) / 2.0;
+        double cz = (z[LEFT_SHOULDER] + z[RIGHT_SHOULDER]) / 2.0;
 
         for (int i = 0; i < z.length; i++) {
             out[i] = (z[i] - cz) / w;
@@ -500,13 +481,9 @@ public class textoutputgen {
 
         System.out.println(result.summaryText());
 
-        if (result.movementFeedback() == null
-                || result.movementFeedback().isEmpty()) {
-
+        if (result.movementFeedback() == null || result.movementFeedback().isEmpty()) {
             System.out.println("- No feedback needed!");
-
         } else {
-
             for (String feedback : result.movementFeedback()) {
                 System.out.println("- " + feedback);
             }
@@ -611,9 +588,7 @@ public class textoutputgen {
          * @return weighted average between 0.0 and 1.0
          */
         double average() {
-            return weightTotal == 0
-                    ? 1.0
-                    : weightedSum / weightTotal;
+            return weightTotal == 0 ? 1.0 : weightedSum / weightTotal;
         }
     }
 }

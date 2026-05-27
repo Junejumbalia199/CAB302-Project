@@ -37,6 +37,10 @@ public final class Navigator {
 
     private final Stage stage;
 
+    /**
+     * Constructs a Navigator bound to the given stage.
+     * @param stage the primary application stage all pages will be shown on
+     */
     public Navigator(Stage stage) {
         this.stage = stage;
     }
@@ -71,6 +75,7 @@ public final class Navigator {
     }
 
 
+    /** Opens the user profile page. */
     public void showProfile() {
         new ProfilePage(
                 stage,
@@ -81,6 +86,7 @@ public final class Navigator {
         ).show();
     }
 
+    /** Opens the workout history page. */
     public void showHistory() {
         new HistoryPage(stage).show();
     }
@@ -95,6 +101,10 @@ public final class Navigator {
      * exercise. ✕ / Back go to selection; "Start Live Session →" goes
      * through to the live pose screen.
      */
+    /**
+     * Opens the tutorial video preview for the given exercise.
+     * @param exerciseName the display name of the exercise (e.g. {@code "Push-ups"})
+     */
     public void showVideoPreview(String exerciseName) {
         ExerciseVideoView view = new ExerciseVideoView(
                 exerciseName,
@@ -106,7 +116,10 @@ public final class Navigator {
         stage.show();
     }
 
-    /** Live exercise session for a given exercise. Back -> selection. */
+    /**
+     * Opens the live exercise session for the given exercise.
+     * @param exerciseName the display name of the exercise (e.g. {@code "Push-ups"})
+     */
     public void showRunexercise(String exerciseName) {
         new runexercise(stage, exerciseName, this::showSelection).show();
     }

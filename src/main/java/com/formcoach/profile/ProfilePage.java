@@ -15,6 +15,9 @@ import javafx.scene.image.ImageView;
 
 import java.net.URL;
 
+/**
+ * JavaFX screen that displays and allows editing of the current user's account details.
+ */
 public class ProfilePage {
 
     private final Stage stage;
@@ -23,6 +26,14 @@ public class ProfilePage {
     private final Runnable onLogout;
     private final Runnable onHistory;
 
+    /**
+     * Constructs a new ProfilePage.
+     * @param stage       the primary application stage
+     * @param onHome      callback invoked when the user navigates to the home page
+     * @param onExercises callback invoked when the user navigates to the exercise selection page
+     * @param onLogout    callback invoked when the user logs out
+     * @param onHistory   callback invoked when the user navigates to the history page
+     */
     public ProfilePage(Stage stage, Runnable onHome, Runnable onExercises, Runnable onLogout, Runnable onHistory) {
         this.stage = stage;
         this.onHome = onHome;
@@ -31,6 +42,7 @@ public class ProfilePage {
         this.onHistory = onHistory;
     }
 
+    /** Builds and displays the profile screen on the primary stage. */
     public void show() {
         User user = AuthSession.getCurrentUser();
 
