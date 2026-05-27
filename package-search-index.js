@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"m":"com.formcoach","l":"com.formcoach"},{"m":"com.formcoach","l":"com.formcoach.auth"},{"m":"com.formcoach","l":"com.formcoach.chatbot"},{"m":"com.formcoach","l":"com.formcoach.profile"},{"m":"com.formcoach","l":"com.formcoach.textoutputgen"},{"m":"com.formcoach","l":"kaggle"}];updateSearchResults();

@@ -1,0 +1,30 @@
+--class-path
+'/home/runner/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1.jar:/home/runner/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1.jar:/home/runner/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1.jar:/home/runner/.m2/repository/org/openjfx/javafx-fxml/21.0.1/javafx-fxml-21.0.1.jar:/home/runner/.m2/repository/org/openjfx/javafx-media/21.0.1/javafx-media-21.0.1.jar:/home/runner/.m2/repository/org/openjfx/javafx-swing/21.0.1/javafx-swing-21.0.1.jar:/home/runner/.m2/repository/com/nativelibs4java/bridj/0.7.0/bridj-0.7.0.jar'
+--module-path
+'/home/runner/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-linux.jar:/home/runner/.m2/repository/org/openjfx/javafx-media/21.0.1/javafx-media-21.0.1-linux.jar:/home/runner/.m2/repository/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar:/home/runner/.m2/repository/org/openjfx/javafx-fxml/21.0.1/javafx-fxml-21.0.1-linux.jar:/home/runner/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-linux.jar:/home/runner/.m2/repository/org/json/json/20231013/json-20231013.jar:/home/runner/.m2/repository/org/openjfx/javafx-swing/21.0.1/javafx-swing-21.0.1-linux.jar:/home/runner/.m2/repository/io/github/cdimascio/dotenv-java/3.0.0/dotenv-java-3.0.0.jar:/home/runner/.m2/repository/com/github/sarxos/webcam-capture/0.3.12/webcam-capture-0.3.12.jar:/home/runner/.m2/repository/org/xerial/sqlite-jdbc/3.45.3.0/sqlite-jdbc-3.45.3.0.jar:/home/runner/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-linux.jar:/home/runner/work/CAB302-Project/CAB302-Project/target/classes'
+--patch-module
+com.formcoach='/home/runner/work/CAB302-Project/CAB302-Project/src/main/java:/home/runner/work/CAB302-Project/CAB302-Project/src/main/javadoc'
+-encoding
+'UTF-8'
+-overview
+'/home/runner/work/CAB302-Project/CAB302-Project/src/main/javadoc/overview.html'
+-protected
+-source
+'21'
+--module-source-path
+'/home/runner/work/CAB302-Project/CAB302-Project/target/docs/javadoc/src'
+-author
+-bottom
+'FormCoach — CAB302 Project'
+-charset
+'UTF-8'
+-d
+'/home/runner/work/CAB302-Project/CAB302-Project/target/docs/javadoc'
+-docencoding
+'UTF-8'
+-doctitle
+'FormCoach API Documentation'
+-use
+-version
+-windowtitle
+'FormCoach 1.0-SNAPSHOT API'
