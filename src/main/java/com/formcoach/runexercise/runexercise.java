@@ -190,10 +190,8 @@ public class runexercise {
             }
         });
 
-        // replace with hint on how to run program.
-        // "Click on the area above to start or stop video. Text feedback will appear below."
         Label hint = new Label(
-                "Hook the MediaPipe feed (main.py) into here to show live pose overlays.");
+                "Click on the area above to start or stop video. Text feedback will appear below.");
         hint.setStyle("-fx-font-size: 13px; -fx-text-fill: #6b7280;");
         VBox.setMargin(hint, new Insets(0, 100, 0, 100));
 

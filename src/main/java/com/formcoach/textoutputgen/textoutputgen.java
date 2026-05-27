@@ -111,9 +111,6 @@ public class textoutputgen {
      * Tolerance thresholds for squat analysis.
      */
     private final Double[] squatTols = new Double[]{0.35, 0.15, 0.05, 0.0};
-    private final String[] poseLandmarkNames = new String[]{"nose", "left eye (inner)", "left eye", "left eye (outer)", "right eye (inner)", "right eye", "right eye (outer)", "left ear", "right ear", "mouth (left)", "mouth (right)", "left shoulder", "right shoulder", "left elbow", "right elbow", "left wrist", "right wrist", "left pinky", "right pinky", "left index", "right index", "left thumb", "right thumb", "left hip", "right hip", "left knee", "right knee", "left ankle", "right ankle", "left heel", "right heel", "left foot index", "right foot index"};
-    /** When {@code true}, no random encouragement suffix is appended to feedback. */
-
     /**
      * Human-readable landmark names indexed by MediaPipe landmark ID.
      */
@@ -162,9 +159,6 @@ public class textoutputgen {
      * Summary message for excellent form.
      */
     public String PerfectText = "Your form is perfect!";
-    /** Pool of random encouragement messages appended when flavour text is enabled. */
-    public String[] FlavourText = new String[]{"Good job!", "Keep it up!", "Great work!", "Keep on improving!", "Don't give up!"};
-
     /**
      * Optional randomized encouragement phrases.
      */
@@ -217,16 +211,6 @@ public class textoutputgen {
      * @return populated pose analysis result
      * @throws PoseValidationException if input arrays are invalid
      */
-    public PoseResult output(
-            Double[] userX,
-            Double[] userY,
-            Double[] userZ,
-            Double[] idealX,
-            Double[] idealY,
-            Double[] idealZ,
-            String exerciseType
-    ) {
-
         validate(userX, userY, userZ, idealX, idealY, idealZ);
 
         Double[] tols = switch (exerciseType) {
